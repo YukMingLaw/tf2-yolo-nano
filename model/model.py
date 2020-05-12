@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input,UpSampling2D,Concatenate
-from base_layers import conv1x1,conv3x3,PEP,EP,FCA,decode
+from base_layers import conv1x1,conv3x3,PEP,EP,FCA,yololayer,yolo_loss
 
 def yoloNano(input_size=416,num_classes=1):
     input_0 = Input(shape=(input_size,input_size,3))
@@ -50,11 +50,13 @@ def yoloNano(input_size=416,num_classes=1):
     x = PEP(filters=93,neck_filters=47)(x)
     feature_52x52 = conv1x1(filters=3 * (num_classes + 5),bn=False)(x)
 
-    out_0 = decode(feature_13x13, num_classes, 32, [0,0,0])
-    out_1 = decode(feature_26x26, num_classes, 16, [0,0,0])
-    out_2 = decode(feature_52x52, num_classes, 8, [0,0,0])
+    #out_0 = yololayer(feature_13x13,[[10.,20.],[10.,20.],[10.,20.]], num_classes, [416,416])
+    #out_1 = yololayer(feature_26x26,[[10.,20.],[10.,20.],[10.,20.]], num_classes, [416,416])
+    #out_2 = yololayer(feature_52x52,[[10.,20.],[10.,20.],[10.,20.]], num_classes, [416,416])
 
-    model = tf.keras.Model(inputs=input_0,outputs=[out_0,out_1,out_2])
+    loss = yolo_loss([feature_13x13,feature_26x26,feature_52x52],[[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.]],1)
+
+    model = tf.keras.Model(inputs=input_0,outputs=[feature_13x13,feature_26x26,feature_52x52])
     return model
 
 _model = yoloNano(input_size=416,num_classes=1)

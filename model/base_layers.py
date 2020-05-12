@@ -1,12 +1,13 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNormalization,ReLU,AvgPool2D,UpSampling2D,Concatenate
+from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNormalization,AvgPool2D,UpSampling2D,Concatenate,LeakyReLU
+from utils.utils import box_iou
 
 def conv1x1(filters,bn=True):
     if bn == True:
         return tf.keras.Sequential(
             [Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same'),
             BatchNormalization(),
-            ReLU()]
+            LeakyReLU()]
         )
     else:
         return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same')
@@ -16,7 +17,7 @@ def conv3x3(filters,stride,bn=True):
         return tf.keras.Sequential(
             [Conv2D(filters,kernel_size=(3,3),strides=stride,use_bias=False,padding='same'),
             BatchNormalization(),
-            ReLU()]
+            LeakyReLU()]
         )
     else:
         return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same')
@@ -25,10 +26,10 @@ def sepconv3x3(neck_channels,output_channels,stride=(1,1)):
     return tf.keras.Sequential([
         Conv2D(neck_channels,kernel_size=(1,1),use_bias=False,padding='same'),
         BatchNormalization(),
-        ReLU(),
+        LeakyReLU(),
         DepthwiseConv2D(kernel_size=(3,3),padding='same',strides=stride),
         BatchNormalization(),
-        ReLU(),
+        LeakyReLU(),
         Conv2D(output_channels,kernel_size=(1,1),use_bias=False,padding='same'),
         BatchNormalization()
     ])
@@ -82,129 +83,124 @@ class FCA(tf.keras.layers.Layer):
         x = self.fc(x)
         return input * x
 
-def decode(conv_output,num_classes,stride,anchors):
-    """
-    return tensor of shape [batch_size, output_size, output_size, anchor_per_scale, 5 + num_classes]
-            contains (x, y, w, h, score, probability)
-    """
-    conv_shape       = tf.shape(conv_output)
-    batch_size       = conv_shape[0]
-    output_size      = conv_shape[1]
+def yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape):
+    '''Get corrected boxes'''
+    box_yx = box_xy[..., ::-1]
+    box_hw = box_wh[..., ::-1]
+    input_shape = tf.cast(input_shape, tf.dtype(box_yx))
+    image_shape = tf.cast(image_shape, tf.dtype(box_yx))
+    new_shape = tf.round(image_shape * tf.min(input_shape/image_shape))
+    offset = (input_shape-new_shape)/2./input_shape
+    scale = input_shape/new_shape
+    box_yx = (box_yx - offset) * scale
+    box_hw *= scale
 
-    conv_output = tf.reshape(conv_output, (batch_size, output_size, output_size, 3, 5 + num_classes))
+    box_mins = box_yx - (box_hw / 2.)
+    box_maxes = box_yx + (box_hw / 2.)
+    boxes =  tf.concatenate([
+        box_mins[..., 0:1],  # y_min
+        box_mins[..., 1:2],  # x_min
+        box_maxes[..., 0:1],  # y_max
+        box_maxes[..., 1:2]  # x_max
+    ])
 
-    conv_raw_dxdy = conv_output[:, :, :, :, 0:2]
-    conv_raw_dwdh = conv_output[:, :, :, :, 2:4]
-    conv_raw_conf = conv_output[:, :, :, :, 4:5]
-    conv_raw_prob = conv_output[:, :, :, :, 5: ]
+    # Scale boxes back to original image shape.
+    boxes *= tf.concatenate([image_shape, image_shape])
+    return boxes
 
-    y = tf.tile(tf.range(output_size, dtype=tf.int32)[:, tf.newaxis], [1, output_size])
-    x = tf.tile(tf.range(output_size, dtype=tf.int32)[tf.newaxis, :], [output_size, 1])
+def yolo_boxes_and_scores(feats, anchors, num_classes, input_shape, image_shape):
+    '''Process Conv layer output'''
+    box_xy, box_wh, box_confidence, box_class_probs = yololayer(feats,
+        anchors, num_classes, input_shape)
+    boxes = yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape)
+    boxes = tf.reshape(boxes, [-1, 4])
+    box_scores = box_confidence * box_class_probs
+    box_scores = tf.reshape(box_scores, [-1, num_classes])
+    return boxes, box_scores
 
-    xy_grid = tf.concat([x[:, :, tf.newaxis], y[:, :, tf.newaxis]], axis=-1)
-    xy_grid = tf.tile(xy_grid[tf.newaxis, :, :, tf.newaxis, :], [batch_size, 1, 1, 3, 1])
-    xy_grid = tf.cast(xy_grid, tf.float32)
+def yololayer(feats, anchors, num_classes, input_shape, calc_loss=False):
+    """Convert final layer features to bounding box parameters."""
+    num_anchors = len(anchors)
+    # Reshape to batch, height, width, num_anchors, box_params.
+    anchors_tensor = tf.reshape(tf.constant(anchors), [1, 1, 1, num_anchors, 2])
 
-    pred_xy = (tf.sigmoid(conv_raw_dxdy) + xy_grid) * stride
-    pred_wh = (tf.exp(conv_raw_dwdh) * anchors)
-    pred_xywh = tf.concat([pred_xy, pred_wh], axis=-1)
+    grid_shape = tf.shape(feats)[1:3] # height, width
+    grid_y = tf.tile(tf.reshape(tf.keras.backend.arange(0, stop=grid_shape[0]), [-1, 1, 1, 1]),[1, grid_shape[1], 1, 1])
+    grid_x = tf.tile(tf.reshape(tf.keras.backend.arange(0, stop=grid_shape[1]), [1, -1, 1, 1]),[grid_shape[0], 1, 1, 1])
+    grid = tf.keras.layers.concatenate([grid_x, grid_y])
+    grid = tf.cast(grid, tf.float32)
 
-    pred_conf = tf.sigmoid(conv_raw_conf)
-    pred_prob = tf.sigmoid(conv_raw_prob)
+    feats = tf.reshape(feats, [-1, grid_shape[0], grid_shape[1], num_anchors, num_classes + 5])
 
-    return tf.concat([pred_xywh, pred_conf, pred_prob], axis=-1)
+    # Adjust preditions to each spatial grid point and anchor size.
+    box_xy = (tf.sigmoid(feats[..., :2]) + grid) / tf.cast(grid_shape[::-1], tf.float32)
+    box_wh = tf.exp(feats[..., 2:4]) * anchors_tensor / tf.cast(input_shape[::-1], tf.float32)
+    box_confidence = tf.sigmoid(feats[..., 4:5])
+    box_class_probs = tf.sigmoid(feats[..., 5:])
 
-def bbox_iou(boxes1, boxes2):
+    if calc_loss == True:
+        return grid, feats, box_xy, box_wh
+    return box_xy, box_wh, box_confidence, box_class_probs
 
-    boxes1_area = boxes1[..., 2] * boxes1[..., 3]
-    boxes2_area = boxes2[..., 2] * boxes2[..., 3]
+def yolo_loss(args, anchors, num_classes, ignore_thresh=.5, print_loss=False):
+    '''Return yolo_loss tensor
+    Parameters
+    ----------
+    yolo_outputs: list of tensor, the output of yolo_body or tiny_yolo_body
+    y_true: list of array, the output of preprocess_true_boxes
+    anchors: array, shape=(N, 2), wh
+    num_classes: integer
+    ignore_thresh: float, the iou threshold whether to ignore object confidence loss
+    Returns
+    -------
+    loss: tensor, shape=(1,)
+    '''
+    num_layers = len(anchors)//3 # default setting
+    yolo_outputs = args[:num_layers]
+    y_true = args[num_layers:]
+    anchor_mask = [[6,7,8], [3,4,5], [0,1,2]] if num_layers==3 else [[3,4,5], [1,2,3]]
+    input_shape = tf.cast(tf.shape(yolo_outputs[0])[1:3] * 32, tf.keras.backend.dtype(y_true[0]))
+    grid_shapes = [tf.cast(tf.shape(yolo_outputs[l])[1:3], tf.keras.backend.dtype(y_true[0])) for l in range(num_layers)]
+    loss = 0
+    m = tf.shape(yolo_outputs[0])[0] # batch size, tensor
+    mf = tf.cast(m, tf.keras.backend.dtype(yolo_outputs[0]))
 
-    boxes1 = tf.concat([boxes1[..., :2] - boxes1[..., 2:] * 0.5,
-                        boxes1[..., :2] + boxes1[..., 2:] * 0.5], axis=-1)
-    boxes2 = tf.concat([boxes2[..., :2] - boxes2[..., 2:] * 0.5,
-                        boxes2[..., :2] + boxes2[..., 2:] * 0.5], axis=-1)
+    for l in range(num_layers):
+        object_mask = y_true[l][..., 4:5]
+        true_class_probs = y_true[l][..., 5:]
 
-    left_up = tf.maximum(boxes1[..., :2], boxes2[..., :2])
-    right_down = tf.minimum(boxes1[..., 2:], boxes2[..., 2:])
+        grid, raw_pred, pred_xy, pred_wh = yololayer(yolo_outputs[l],anchors[anchor_mask[l]], num_classes, input_shape, calc_loss=True)
+        pred_box = tf.keras.layers.concatenate([pred_xy, pred_wh])
 
-    inter_section = tf.maximum(right_down - left_up, 0.0)
-    inter_area = inter_section[..., 0] * inter_section[..., 1]
-    union_area = boxes1_area + boxes2_area - inter_area
+        # Darknet raw box to calculate loss.
+        raw_true_xy = y_true[l][..., :2]*grid_shapes[l][::-1] - grid
+        raw_true_wh = tf.math.log(y_true[l][..., 2:4] / anchors[anchor_mask[l]] * input_shape[::-1])
+        raw_true_wh = tf.keras.backend.switch(object_mask, raw_true_wh, tf.keras.backend.zeros_like(raw_true_wh)) # avoid log(0)=-inf
+        box_loss_scale = 2 - y_true[l][...,2:3]*y_true[l][...,3:4]
 
-    return 1.0 * inter_area / union_area
+        # Find ignore mask, iterate over each of batch.
+        ignore_mask = tf.TensorArray(tf.keras.backend.dtype(y_true[0]), size=1, dynamic_size=True)
+        object_mask_bool = tf.cast(object_mask, 'bool')
+        def loop_body(b, ignore_mask):
+            true_box = tf.boolean_mask(y_true[l][b,...,0:4], object_mask_bool[b,...,0])
+            iou = box_iou(pred_box[b], true_box)
+            best_iou = tf.keras.backend.max(iou, axis=-1)
+            ignore_mask = ignore_mask.write(b, tf.cast(best_iou<ignore_thresh, tf.keras.backend.dtype(true_box)))
+            return b+1, ignore_mask
+        _, ignore_mask = tf.while_loop(lambda b,*args: b<m, loop_body, [0, ignore_mask])
+        ignore_mask = ignore_mask.stack()
+        ignore_mask = tf.expand_dims(ignore_mask, -1)
 
-def bbox_giou(boxes1, boxes2):
+        # tf.keras.binary_crossentropy is helpful to avoid exp overflow.
+        xy_loss = object_mask * box_loss_scale * tf.keras.losses.binary_crossentropy(raw_true_xy, raw_pred[...,0:2], from_logits=True)
+        wh_loss = object_mask * box_loss_scale * 0.5 * tf.keras.losses.mean_squared_error(raw_true_wh,raw_pred[...,2:4])
+        confidence_loss = object_mask * tf.keras.losses.binary_crossentropy(object_mask, raw_pred[...,4:5], from_logits=True)+ \
+            (1-object_mask) * tf.keras.losses.binary_crossentropy(object_mask, raw_pred[...,4:5], from_logits=True) * ignore_mask
+        class_loss = object_mask * tf.keras.losses.binary_crossentropy(true_class_probs, raw_pred[...,5:], from_logits=True)
 
-    boxes1 = tf.concat([boxes1[..., :2] - boxes1[..., 2:] * 0.5,
-                        boxes1[..., :2] + boxes1[..., 2:] * 0.5], axis=-1)
-    boxes2 = tf.concat([boxes2[..., :2] - boxes2[..., 2:] * 0.5,
-                        boxes2[..., :2] + boxes2[..., 2:] * 0.5], axis=-1)
-
-    boxes1 = tf.concat([tf.minimum(boxes1[..., :2], boxes1[..., 2:]),
-                        tf.maximum(boxes1[..., :2], boxes1[..., 2:])], axis=-1)
-    boxes2 = tf.concat([tf.minimum(boxes2[..., :2], boxes2[..., 2:]),
-                        tf.maximum(boxes2[..., :2], boxes2[..., 2:])], axis=-1)
-
-    boxes1_area = (boxes1[..., 2] - boxes1[..., 0]) * (boxes1[..., 3] - boxes1[..., 1])
-    boxes2_area = (boxes2[..., 2] - boxes2[..., 0]) * (boxes2[..., 3] - boxes2[..., 1])
-
-    left_up = tf.maximum(boxes1[..., :2], boxes2[..., :2])
-    right_down = tf.minimum(boxes1[..., 2:], boxes2[..., 2:])
-
-    inter_section = tf.maximum(right_down - left_up, 0.0)
-    inter_area = inter_section[..., 0] * inter_section[..., 1]
-    union_area = boxes1_area + boxes2_area - inter_area
-    iou = inter_area / union_area
-
-    enclose_left_up = tf.minimum(boxes1[..., :2], boxes2[..., :2])
-    enclose_right_down = tf.maximum(boxes1[..., 2:], boxes2[..., 2:])
-    enclose = tf.maximum(enclose_right_down - enclose_left_up, 0.0)
-    enclose_area = enclose[..., 0] * enclose[..., 1]
-    giou = iou - 1.0 * (enclose_area - union_area) / enclose_area
-
-    return giou
-
-def compute_loss(pred, conv, label, bboxes,num_classes,stride):
-    iuo_loss_thres = 0.5
-    conv_shape  = tf.shape(conv)
-    batch_size  = conv_shape[0]
-    output_size = conv_shape[1]
-    input_size  = stride * output_size
-    conv = tf.reshape(conv, (batch_size, output_size, output_size, 3, 5 + num_classes))
-
-    conv_raw_conf = conv[:, :, :, :, 4:5]
-    conv_raw_prob = conv[:, :, :, :, 5:]
-
-    pred_xywh     = pred[:, :, :, :, 0:4]
-    pred_conf     = pred[:, :, :, :, 4:5]
-
-    label_xywh    = label[:, :, :, :, 0:4]
-    respond_bbox  = label[:, :, :, :, 4:5]
-    label_prob    = label[:, :, :, :, 5:]
-
-    giou = tf.expand_dims(bbox_giou(pred_xywh, label_xywh), axis=-1)
-    input_size = tf.cast(input_size, tf.float32)
-
-    bbox_loss_scale = 2.0 - 1.0 * label_xywh[:, :, :, :, 2:3] * label_xywh[:, :, :, :, 3:4] / (input_size ** 2)
-    giou_loss = respond_bbox * bbox_loss_scale * (1- giou)
-
-    iou = bbox_iou(pred_xywh[:, :, :, :, tf.newaxis, :], bboxes[:, tf.newaxis, tf.newaxis, tf.newaxis, :, :])
-    max_iou = tf.expand_dims(tf.reduce_max(iou, axis=-1), axis=-1)
-
-    respond_bgd = (1.0 - respond_bbox) * tf.cast( max_iou < iuo_loss_thres, tf.float32 )
-
-    conf_focal = tf.pow(respond_bbox - pred_conf, 2)
-
-    conf_loss = conf_focal * (
-            respond_bbox * tf.nn.sigmoid_cross_entropy_with_logits(labels=respond_bbox, logits=conv_raw_conf)
-            +
-            respond_bgd * tf.nn.sigmoid_cross_entropy_with_logits(labels=respond_bbox, logits=conv_raw_conf)
-    )
-
-    prob_loss = respond_bbox * tf.nn.sigmoid_cross_entropy_with_logits(labels=label_prob, logits=conv_raw_prob)
-
-    giou_loss = tf.reduce_mean(tf.reduce_sum(giou_loss, axis=[1,2,3,4]))
-    conf_loss = tf.reduce_mean(tf.reduce_sum(conf_loss, axis=[1,2,3,4]))
-    prob_loss = tf.reduce_mean(tf.reduce_sum(prob_loss, axis=[1,2,3,4]))
-
-    return giou_loss, conf_loss, prob_loss
+        xy_loss = tf.keras.backend.sum(xy_loss) / mf
+        wh_loss = tf.keras.backend.sum(wh_loss) / mf
+        confidence_loss = tf.keras.backend.sum(confidence_loss) / mf
+        class_loss = tf.keras.backend.sum(class_loss) / mf
+        loss += xy_loss + wh_loss + confidence_loss + class_loss
+    return loss
