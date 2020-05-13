@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNormalization,AvgPool2D,UpSampling2D,Concatenate,LeakyReLU
 from utils.utils import box_iou
+import numpy as np
 
 def conv1x1(filters,bn=True):
     if bn == True:
@@ -87,9 +88,9 @@ def yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape):
     '''Get corrected boxes'''
     box_yx = box_xy[..., ::-1]
     box_hw = box_wh[..., ::-1]
-    input_shape = tf.cast(input_shape, tf.dtype(box_yx))
-    image_shape = tf.cast(image_shape, tf.dtype(box_yx))
-    new_shape = tf.round(image_shape * tf.min(input_shape/image_shape))
+    input_shape = tf.cast(input_shape, tf.keras.backend.dtype(box_yx))
+    image_shape = tf.cast(image_shape, tf.keras.backend.dtype(box_yx))
+    new_shape = tf.round(image_shape * tf.keras.backend.min(input_shape/image_shape))
     offset = (input_shape-new_shape)/2./input_shape
     scale = input_shape/new_shape
     box_yx = (box_yx - offset) * scale
@@ -97,7 +98,7 @@ def yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape):
 
     box_mins = box_yx - (box_hw / 2.)
     box_maxes = box_yx + (box_hw / 2.)
-    boxes =  tf.concatenate([
+    boxes =  tf.keras.layers.concatenate([
         box_mins[..., 0:1],  # y_min
         box_mins[..., 1:2],  # x_min
         box_maxes[..., 0:1],  # y_max
@@ -105,7 +106,7 @@ def yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape):
     ])
 
     # Scale boxes back to original image shape.
-    boxes *= tf.concatenate([image_shape, image_shape])
+    boxes *= tf.keras.layers.concatenate([image_shape, image_shape])
     return boxes
 
 def yolo_boxes_and_scores(feats, anchors, num_classes, input_shape, image_shape):
@@ -204,3 +205,47 @@ def yolo_loss(args, anchors, num_classes, ignore_thresh=.5, print_loss=False):
         class_loss = tf.keras.backend.sum(class_loss) / mf
         loss += xy_loss + wh_loss + confidence_loss + class_loss
     return loss
+
+def yolo_eval(yolo_outputs,
+              anchors,
+              num_classes,
+              image_shape,
+              max_boxes=20,
+              score_threshold=.6,
+              iou_threshold=.5):
+    """Evaluate YOLO model on given input and return filtered boxes."""
+    num_layers = len(yolo_outputs)
+    anchor_mask = [[6,7,8], [3,4,5], [0,1,2]] if num_layers==3 else [[3,4,5], [1,2,3]] # default setting
+    input_shape = tf.shape(yolo_outputs[0])[1:3] * 32
+    boxes = []
+    box_scores = []
+    for l in range(num_layers):
+        _boxes, _box_scores = yolo_boxes_and_scores(yolo_outputs[l],
+            anchors[anchor_mask[l]], num_classes, input_shape, image_shape)
+        boxes.append(_boxes)
+        box_scores.append(_box_scores)
+    boxes = tf.keras.layers.concatenate(boxes, axis=0)
+    box_scores = tf.keras.layers.concatenate(box_scores, axis=0)
+
+    mask = box_scores >= score_threshold
+    max_boxes_tensor = tf.constant(max_boxes, dtype='int32')
+    boxes_ = []
+    scores_ = []
+    classes_ = []
+    for c in range(num_classes):
+        # TODO: use keras backend instead of tf.
+        class_boxes = tf.boolean_mask(boxes, mask[:, c])
+        class_box_scores = tf.boolean_mask(box_scores[:, c], mask[:, c])
+        nms_index = tf.image.non_max_suppression(
+            class_boxes, class_box_scores, max_boxes_tensor, iou_threshold=iou_threshold)
+        class_boxes = tf.gather(class_boxes, nms_index)
+        class_box_scores = tf.gather(class_box_scores, nms_index)
+        classes = tf.ones_like(class_box_scores, 'int32') * c
+        boxes_.append(class_boxes)
+        scores_.append(class_box_scores)
+        classes_.append(classes)
+    boxes_ = tf.keras.layers.concatenate(boxes_, axis=0)
+    scores_ = tf.keras.layers.concatenate(scores_, axis=0)
+    classes_ = tf.keras.layers.concatenate(classes_, axis=0)
+
+    return boxes_, scores_, classes_
