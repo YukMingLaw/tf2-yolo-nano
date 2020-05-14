@@ -1,9 +1,10 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input,UpSampling2D,Concatenate
-from base_layers import conv1x1,conv3x3,PEP,EP,FCA,yololayer,yolo_loss
+from tensorflow.keras.layers import Input,UpSampling2D,Concatenate,Lambda
+from .base_layers import conv1x1,conv3x3,PEP,EP,FCA,yololayer,yolo_loss
 
-def yoloNano(input_size=416,num_classes=1):
+def yoloNano(anchors,input_size=416,num_classes=1):
     input_0 = Input(shape=(input_size,input_size,3))
+    input_gt = [Input(shape=(input_size//{0:32, 1:16, 2:8}[l], input_size//{0:32, 1:16, 2:8}[l],len(anchors)//3, num_classes+5)) for l in range(3)]
     x = conv3x3(filters=12,stride=(1,1))(input_0)
     x = conv3x3(filters=24,stride=(2,2))(x)
     x = PEP(filters=24, neck_filters=7)(x)
@@ -50,19 +51,13 @@ def yoloNano(input_size=416,num_classes=1):
     x = PEP(filters=93,neck_filters=47)(x)
     feature_52x52 = conv1x1(filters=3 * (num_classes + 5),bn=False)(x)
 
-    #out_0 = yololayer(feature_13x13,[[10.,20.],[10.,20.],[10.,20.]], num_classes, [416,416])
-    #out_1 = yololayer(feature_26x26,[[10.,20.],[10.,20.],[10.,20.]], num_classes, [416,416])
-    #out_2 = yololayer(feature_52x52,[[10.,20.],[10.,20.],[10.,20.]], num_classes, [416,416])
+    loss = Lambda(yolo_loss, output_shape=(1,), name='yolo_loss',arguments={'anchors': anchors, 'num_classes': num_classes, 'ignore_thresh': 0.5})([feature_13x13,feature_26x26,feature_52x52, *input_gt])
 
-    loss = yolo_loss([feature_13x13,feature_26x26,feature_52x52],[[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.],[1.,1.]],1)
+    debug_model = tf.keras.Model(inputs=input_0,outputs=[feature_13x13,feature_26x26,feature_52x52])
+    train_model = tf.keras.Model(inputs=[input_0,*input_gt],outputs=loss)
+    return train_model,debug_model
 
-    model = tf.keras.Model(inputs=input_0,outputs=[feature_13x13,feature_26x26,feature_52x52])
-    return model
-
-_model = yoloNano(input_size=416,num_classes=1)
 # import numpy as np
-# img = np.zeros((416,416,3),dtype=np.float32)
-# img = img[np.newaxis,:]
-# _model(img)
-#_model.summary()
-#tf.keras.utils.plot_model(_model)
+# anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14.,22.],[17.,37.],[21.,26.],[29.,38.],[39.,62.],[79.,99.]],dtype='float32')
+# model = yoloNano(anchors,input_size=416,num_classes=1)
+# model.summary()

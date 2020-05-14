@@ -9,6 +9,8 @@ class YoloGenerator(tf.keras.utils.Sequence):
     def __init__(
             self,
             train_list=[],
+            anchors=[],
+            num_classes=1,
             multi_scale=False,
             multi_image_sizes=(320, 352, 384, 416, 448, 480, 512, 544, 576, 608),
             batch_size=1,
@@ -24,6 +26,8 @@ class YoloGenerator(tf.keras.utils.Sequence):
         self.shuffle = shuffle
         self.random_trans = random_transfer
         self.input_size = input_size
+        self.anchors = anchors
+        self.num_classes = num_classes
         if(len(train_list) == 0):
             print('error train set is empty!')
             exit()
@@ -36,7 +40,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
 
     def __getitem__(self, index):
         batch_img,batch_box = self.load_batch()
-        gt = preprocess_true_boxes(batch_box,(self.input_size,self.input_size),np.array([[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.]],dtype='float32'),3)
+        gt = preprocess_true_boxes(batch_box,(self.input_size,self.input_size),self.anchors,self.num_classes)
         return [batch_img,*gt],np.zeros(self.batch_size)
 
     def load_batch(self):
@@ -61,6 +65,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
         for path in batch_list:
             img = cv2.imread(path)
             img = cv2.resize(img,(img_size,img_size))
+            img = img / 255.0
             batch_img.append(img)
 
             _path = path.split('.')
@@ -75,24 +80,21 @@ class YoloGenerator(tf.keras.utils.Sequence):
                     boxes.append(_box)
                     _line = f.readline()
             box_data = np.zeros((max_num_box,5))
-            if len(boxes) > max_num_box: boxes = boxes[:max_num_box]
-            box_data[:len(boxes)] = np.array(boxes)
+            if len(boxes) > 0:
+                if len(boxes) > max_num_box: boxes = boxes[:max_num_box]
+                box_data[:len(boxes)] = np.array(boxes)
             batch_label.append(box_data)
 
         batch_img = np.array(batch_img)
         batch_label = np.array(batch_label)
         return batch_img,batch_label
 
+# with open('../coco/train.txt') as f:
+#     _line = f.readlines()
+# train_set = [i.rstrip('\n') for i in _line]
+# train_generator = YoloGenerator(train_list=train_set,anchors=anchors,shuffle=True,batch_size=1)
+# _b_img,_ = train_generator.__getitem__(0)
 
-with open('../coco/train.txt') as f:
-    _line = f.readlines()
-train_set = [i.rstrip('\n') for i in _line]
-train_generator = YoloGenerator(train_list=train_set,shuffle=True,batch_size=1)
-_b_img,_ = train_generator.__getitem__(0)
-boxes,scores,cls = yolo_eval(_b_img[1:],np.array([[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.],[1.,2.]],dtype='float32'),3,np.array([416,416]))
-print(boxes)
-print(scores)
-print(cls)
 # img_1 = _b_img[0]
 # for box in _b_label[0]:
 #     cv2.rectangle(img_1,(int((box[0]-box[2]/2)*416),int((box[1]-box[3]/2)*416)),(int((box[0]+box[2]/2)*416),int((box[1]+box[3]/2)*416)),(255,int(box[4]) * 50,0))

@@ -1,2 +1,0 @@
-/home/cvos/PycharmProjects/tf2-yolov3-nano/coco/train/20191220170113570_1-2.jpg
-/home/cvos/PycharmProjects/tf2-yolov3-nano/coco/train/20191220170200620_1-5-9.jpg

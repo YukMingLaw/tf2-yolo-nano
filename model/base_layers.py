@@ -49,6 +49,11 @@ class PEP(tf.keras.layers.Layer):
         else:
             return x
 
+    def get_config(self):
+        config = {"conv": self.conv,"sepconv":self.sepconv}
+        base_config = super(PEP, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
 class EP(tf.keras.layers.Layer):
     def __init__(self,filters,stride=(1,1)):
         super(EP, self).__init__()
@@ -64,6 +69,10 @@ class EP(tf.keras.layers.Layer):
             return input + self.sepconv(input)
         else:
             return self.sepconv(input)
+    def get_config(self):
+        config = {"sepconv" : self.sepconv,"input_filters" : self.input_filters,"stride":self.stride,"filters":self.filters}
+        base_config = super(EP, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 class FCA(tf.keras.layers.Layer):
     def __init__(self,reduction_ratio):
@@ -83,6 +92,11 @@ class FCA(tf.keras.layers.Layer):
         x = self.avg_pool(input)
         x = self.fc(x)
         return input * x
+
+    def get_config(self):
+        config = {"reduction_ratio " : self.reduction_ratio,"dense_units" : self.dense_units,"avg_pool":self.avg_pool,"fc":self.fc}
+        base_config = super(FCA, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 def yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape):
     '''Get corrected boxes'''
@@ -111,8 +125,7 @@ def yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape):
 
 def yolo_boxes_and_scores(feats, anchors, num_classes, input_shape, image_shape):
     '''Process Conv layer output'''
-    box_xy, box_wh, box_confidence, box_class_probs = yololayer(feats,
-        anchors, num_classes, input_shape)
+    box_xy, box_wh, box_confidence, box_class_probs = yololayer(feats,anchors, num_classes, input_shape)
     boxes = yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape)
     boxes = tf.reshape(boxes, [-1, 4])
     box_scores = box_confidence * box_class_probs
@@ -193,35 +206,30 @@ def yolo_loss(args, anchors, num_classes, ignore_thresh=.5, print_loss=False):
         ignore_mask = tf.expand_dims(ignore_mask, -1)
 
         # tf.keras.binary_crossentropy is helpful to avoid exp overflow.
-        xy_loss = object_mask * box_loss_scale * tf.keras.losses.binary_crossentropy(raw_true_xy, raw_pred[...,0:2], from_logits=True)
-        wh_loss = object_mask * box_loss_scale * 0.5 * tf.keras.losses.mean_squared_error(raw_true_wh,raw_pred[...,2:4])
-        confidence_loss = object_mask * tf.keras.losses.binary_crossentropy(object_mask, raw_pred[...,4:5], from_logits=True)+ \
-            (1-object_mask) * tf.keras.losses.binary_crossentropy(object_mask, raw_pred[...,4:5], from_logits=True) * ignore_mask
-        class_loss = object_mask * tf.keras.losses.binary_crossentropy(true_class_probs, raw_pred[...,5:], from_logits=True)
+        xy_loss = object_mask * box_loss_scale * tf.expand_dims(tf.keras.losses.binary_crossentropy(raw_true_xy, raw_pred[...,0:2], from_logits=True),axis=-1)
+        wh_loss = object_mask * box_loss_scale * 0.5 * tf.expand_dims(tf.keras.losses.mean_squared_error(raw_true_wh,raw_pred[...,2:4]),axis=-1)
+        confidence_loss = object_mask * tf.expand_dims(tf.keras.losses.binary_crossentropy(object_mask, raw_pred[...,4:5], from_logits=True),axis=-1)+ \
+            (1-object_mask) * tf.expand_dims(tf.keras.losses.binary_crossentropy(object_mask, raw_pred[...,4:5], from_logits=True),axis=-1)* ignore_mask
+        class_loss = object_mask * tf.expand_dims(tf.keras.losses.binary_crossentropy(true_class_probs, raw_pred[...,5:], from_logits=True),axis=-1)
 
         xy_loss = tf.keras.backend.sum(xy_loss) / mf
         wh_loss = tf.keras.backend.sum(wh_loss) / mf
         confidence_loss = tf.keras.backend.sum(confidence_loss) / mf
         class_loss = tf.keras.backend.sum(class_loss) / mf
         loss += xy_loss + wh_loss + confidence_loss + class_loss
+        loss = tf.reshape(loss,[1])
     return loss
 
-def yolo_eval(yolo_outputs,
-              anchors,
-              num_classes,
-              image_shape,
-              max_boxes=20,
-              score_threshold=.6,
-              iou_threshold=.5):
+def yolo_eval(yolo_outputs,anchors,num_classes,image_shape,max_boxes=20,score_threshold=.6,iou_threshold=.5):
     """Evaluate YOLO model on given input and return filtered boxes."""
+
     num_layers = len(yolo_outputs)
     anchor_mask = [[6,7,8], [3,4,5], [0,1,2]] if num_layers==3 else [[3,4,5], [1,2,3]] # default setting
     input_shape = tf.shape(yolo_outputs[0])[1:3] * 32
     boxes = []
     box_scores = []
     for l in range(num_layers):
-        _boxes, _box_scores = yolo_boxes_and_scores(yolo_outputs[l],
-            anchors[anchor_mask[l]], num_classes, input_shape, image_shape)
+        _boxes, _box_scores = yolo_boxes_and_scores(yolo_outputs[l],anchors[anchor_mask[l]], num_classes, input_shape, image_shape)
         boxes.append(_boxes)
         box_scores.append(_box_scores)
     boxes = tf.keras.layers.concatenate(boxes, axis=0)
@@ -244,8 +252,9 @@ def yolo_eval(yolo_outputs,
         boxes_.append(class_boxes)
         scores_.append(class_box_scores)
         classes_.append(classes)
-    boxes_ = tf.keras.layers.concatenate(boxes_, axis=0)
-    scores_ = tf.keras.layers.concatenate(scores_, axis=0)
-    classes_ = tf.keras.layers.concatenate(classes_, axis=0)
+    if num_classes > 1:
+        boxes_ = tf.keras.layers.concatenate(boxes_, axis=0)
+        scores_ = tf.keras.layers.concatenate(scores_, axis=0)
+        classes_ = tf.keras.layers.concatenate(classes_, axis=0)
 
     return boxes_, scores_, classes_
