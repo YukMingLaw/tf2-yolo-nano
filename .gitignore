@@ -1,4 +1,5 @@
-coco
-test_img
-logs
+coco/
+test_img/
+logs/
 .idea
+model_save/

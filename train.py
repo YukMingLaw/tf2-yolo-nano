@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from model.model import yoloNano
+from model.model_full import yoloNano
 from dataset.YoloGenerator import YoloGenerator
 import os
 
@@ -24,7 +24,7 @@ def create_callbacks():
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         os.path.join(
             './model_save',
-            'save_model.h5'
+            'save_model.h5.old'
         ),
         verbose=1,
     )

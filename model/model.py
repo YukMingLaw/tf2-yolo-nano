@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input,UpSampling2D,Concatenate,Lambda
-from .base_layers import conv1x1,conv3x3,PEP,EP,FCA,yololayer,yolo_loss
+from .base_layers import conv1x1,conv3x3,PEP,EP,FCA,yolo_loss
 
 def yoloNano(anchors,input_size=416,num_classes=1):
     input_0 = Input(shape=(input_size,input_size,3))
@@ -59,5 +59,5 @@ def yoloNano(anchors,input_size=416,num_classes=1):
 
 # import numpy as np
 # anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14.,22.],[17.,37.],[21.,26.],[29.,38.],[39.,62.],[79.,99.]],dtype='float32')
-# model = yoloNano(anchors,input_size=416,num_classes=1)
+# model,_ = yoloNano(anchors,input_size=416,num_classes=1)
 # model.summary()

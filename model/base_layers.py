@@ -36,10 +36,17 @@ def sepconv3x3(neck_channels,output_channels,stride=(1,1)):
     ])
 
 class PEP(tf.keras.layers.Layer):
-    def __init__(self,filters,neck_filters):
-        super(PEP, self).__init__()
-        self.conv = conv1x1(neck_filters)
-        self.sepconv = sepconv3x3(neck_filters,filters)
+    def __init__(self,filters,neck_filters,**kwargs):
+        super(PEP, self).__init__(**kwargs)
+        self.filters = filters
+        self.neck_filters = neck_filters
+        self.conv = conv1x1(self.neck_filters)
+        self.sepconv = sepconv3x3(self.neck_filters,self.filters)
+
+    def get_config(self):
+        config = {"filters":self.filters,"neck_filters":self.neck_filters,"conv": self.conv,"sepconv":self.sepconv}
+        base_config = super(PEP, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, input):
         x = self.conv(input)
@@ -49,14 +56,9 @@ class PEP(tf.keras.layers.Layer):
         else:
             return x
 
-    def get_config(self):
-        config = {"conv": self.conv,"sepconv":self.sepconv}
-        base_config = super(PEP, self).get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-
 class EP(tf.keras.layers.Layer):
-    def __init__(self,filters,stride=(1,1)):
-        super(EP, self).__init__()
+    def __init__(self,filters,stride=(1,1),**kwargs):
+        super(EP, self).__init__(**kwargs)
         self.filters = filters
         self.stride = stride
 
@@ -75,8 +77,8 @@ class EP(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 class FCA(tf.keras.layers.Layer):
-    def __init__(self,reduction_ratio):
-        super(FCA, self).__init__()
+    def __init__(self,reduction_ratio,**kwargs):
+        super(FCA, self).__init__(**kwargs)
         self.reduction_ratio = reduction_ratio
 
     def build(self, input_shape):

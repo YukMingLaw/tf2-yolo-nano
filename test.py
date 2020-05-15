@@ -10,12 +10,12 @@ def main():
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
     model, debug_model = yoloNano(anchors, input_size=416, num_classes=1)
-    debug_model.load_weights('./model_save/save_model.h5')
-    img = cv2.imread('4.jpg')
+    debug_model.load_weights('./model_save/save_model.h5.old')
+    img = cv2.imread('./test_img/4.jpg')
     img_org = cv2.resize(img,(416,416))
     img = img_org / 255.0
     img = img[np.newaxis,:]
-    yolo_output = debug_model(img)
+    yolo_output = debug_model.predict(img)
     boxes_, scores_, classes_ = yolo_eval(yolo_output,anchors,1,np.array([416,416]))
     for box in boxes_[0]:
         xmin = int(box[0])
