@@ -45,8 +45,4 @@ img = cv2.imread('your test image here')
 ```
 2.Run `python3 test.py`
 
-3.Wow
-
-![avatar](./pic/result.png)
-
 
