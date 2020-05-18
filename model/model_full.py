@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input,UpSampling2D,Concatenate,Lambda,Conv2D,BatchNormalization,LeakyReLU,DepthwiseConv2D,Add,AvgPool2D,Dense
+from tensorflow.keras.layers import Input,UpSampling2D,Concatenate,Lambda,Conv2D,BatchNormalization,LeakyReLU,DepthwiseConv2D,Add,AvgPool2D,Dense,Multiply
 from .base_layers import yolo_loss
 
 def yoloNano(anchors,input_size=416,num_classes=1):
@@ -25,7 +25,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=24,strides=(1,1),kernel_size=(1,1),use_bias=False,padding='same')(x)
     x = BatchNormalization()(x)
-    x = x_0 + x
+    x = Add()([x_0 ,x])
     #EP(104x104x70)
     x = Conv2D(filters=24, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
@@ -47,7 +47,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=70, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_2 = x_1 + x
+    x_2 = Add()([x_1, x])
     # PEP(24)(104x104x70)
     x = Conv2D(filters=24, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_2)
     x = BatchNormalization()(x)
@@ -60,7 +60,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=70, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x = x_2 + x
+    x = Add()([x_2, x])
     # EP(52x52x150)
     x = Conv2D(filters=70, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
@@ -82,7 +82,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=150, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x = x_3 + x
+    x = Add()([x_3, x])
     #Conv1x1
     x = Conv2D(filters=150,kernel_size=(1,1),strides=(1,1),use_bias=False,padding='same')(x)
     x = BatchNormalization()(x)
@@ -91,7 +91,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = AvgPool2D(pool_size=(52,52))(x_4)
     x = Dense(units=150 // 8,activation='relu',use_bias=False)(x)
     x = Dense(units=150, activation='sigmoid', use_bias=False)(x)
-    x_5 = x_4 * x
+    x_5 = Multiply()([x_4,x])
     #PEP(73)(52x52x150)
     x = Conv2D(filters=73, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_5)
     x = BatchNormalization()(x)
@@ -104,7 +104,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=150, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_6 = x_5 + x
+    x_6 = Add()([x_5, x])
     # PEP(71)(52x52x150)
     x = Conv2D(filters=71, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_6)
     x = BatchNormalization()(x)
@@ -117,7 +117,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=150, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_7 = x_6 + x
+    x_7 = Add()([x_6, x])
     # PEP(75)(52x52x150)
     x = Conv2D(filters=75, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_7)
     x = BatchNormalization()(x)
@@ -130,7 +130,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=150, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_8 = x_7 + x #output 52x52x150
+    x_8 = Add()([x_7, x]) #output 52x52x150
     #EP(26x26x325)
     x = Conv2D(filters=150, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_8)
     x = BatchNormalization()(x)
@@ -152,7 +152,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_10 = x_9 + x
+    x_10 = Add()([x_9, x])
     # PEP(124)(26x26x325)
     x = Conv2D(filters=124, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_10)
     x = BatchNormalization()(x)
@@ -165,7 +165,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_11 = x_10 + x
+    x_11 = Add()([x_10, x])
     # PEP(141)(26x26x325)
     x = Conv2D(filters=141, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_11)
     x = BatchNormalization()(x)
@@ -178,7 +178,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_12 = x_11 + x
+    x_12 = Add()([x_11, x])
     # PEP(140)(26x26x325)
     x = Conv2D(filters=140, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_12)
     x = BatchNormalization()(x)
@@ -191,7 +191,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_13 = x_12 + x
+    x_13 = Add()([x_12, x])
     # PEP(137)(26x26x325)
     x = Conv2D(filters=137, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_13)
     x = BatchNormalization()(x)
@@ -204,7 +204,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_14 = x_13 + x
+    x_14 = Add()([x_13, x])
     # PEP(135)(26x26x325)
     x = Conv2D(filters=135, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_14)
     x = BatchNormalization()(x)
@@ -217,7 +217,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_15 = x_14 + x
+    x_15 = Add()([x_14, x])
     # PEP(133)(26x26x325)
     x = Conv2D(filters=133, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_15)
     x = BatchNormalization()(x)
@@ -230,7 +230,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_16 = x_15 + x
+    x_16 = Add()([x_15, x])
     # PEP(140)(26x26x325)
     x = Conv2D(filters=140, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_16)
     x = BatchNormalization()(x)
@@ -243,7 +243,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_17 = x_16 + x #output 26x26x325
+    x_17 = Add()([x_16, x]) #output 26x26x325
     # EP(13x13x545)
     x = Conv2D(filters=325, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x_17)
     x = BatchNormalization()(x)
@@ -265,7 +265,7 @@ def yoloNano(anchors,input_size=416,num_classes=1):
     x = LeakyReLU()(x)
     x = Conv2D(filters=545, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same')(x)
     x = BatchNormalization()(x)
-    x_19 = x_18 + x
+    x_19 = Add()([x_18, x])
     #Conv1x1
     x = Conv2D(filters=230, kernel_size=(1, 1), strides=(1, 1), use_bias=False, padding='same')(x_19)
     x = BatchNormalization()(x)

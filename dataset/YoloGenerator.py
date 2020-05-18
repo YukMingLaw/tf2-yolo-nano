@@ -3,7 +3,6 @@ import numpy as np
 import math
 import cv2
 from utils.utils import preprocess_true_boxes
-from model.base_layers import yolo_eval
 
 class YoloGenerator(tf.keras.utils.Sequence):
     def __init__(
@@ -42,6 +41,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
         batch_img,batch_box = self.load_batch()
         gt = preprocess_true_boxes(batch_box,(self.input_size,self.input_size),self.anchors,self.num_classes)
         return [batch_img,*gt],np.zeros(self.batch_size)
+        #return batch_img,batch_box
 
     def load_batch(self):
         if self.multi_scale:
@@ -64,7 +64,26 @@ class YoloGenerator(tf.keras.utils.Sequence):
         batch_label = []
         for path in batch_list:
             img = cv2.imread(path)
-            img = cv2.resize(img,(img_size,img_size))
+            org_h = img.shape[0]
+            org_w = img.shape[1]
+            max_side = max(org_h,org_w)
+            if org_h > org_w :
+                scale = org_w / max_side
+                pts1 = np.array([[0, 0], [org_w, 0], [0, org_h]], dtype=np.float32)
+                pts2 = np.array([[img_size * (1 - scale) / 2, 0], [img_size * (1 + scale) / 2, 0], [img_size * (1 - scale) / 2, img_size]],
+                                dtype=np.float32)
+                M = cv2.getAffineTransform(pts1, pts2)
+                img = cv2.warpAffine(img, M, (img_size, img_size))
+            else:
+                scale = org_h / max_side
+                pts1 = np.array([[0, 0], [org_w, 0], [0, org_h]], dtype=np.float32)
+                offset1 = img_size * (1 - scale) / 2
+                offset2 = img_size * (1 + scale) / 2
+                pts2 = np.array([[0, offset1], [img_size, offset1], [0, offset2]],
+                                dtype=np.float32)
+                M = cv2.getAffineTransform(pts1, pts2)
+                img = cv2.warpAffine(img, M, (img_size, img_size))
+
             img = img / 255.0
             batch_img.append(img)
 
@@ -76,6 +95,12 @@ class YoloGenerator(tf.keras.utils.Sequence):
                     _line_split = _line.split()
                     obj_class = int(_line_split[0])
                     _box = [float(i) for i in _line_split[1:]]
+                    if org_h > org_w:
+                        _box[0] = (_box[0] * img_size * scale + offset1) / img_size
+                        _box[2] = _box[2] * scale
+                    else:
+                        _box[1] = (_box[1] * img_size * scale + offset1) / img_size
+                        _box[3] = _box[3] * scale
                     _box.append(obj_class)
                     boxes.append(_box)
                     _line = f.readline()
@@ -88,15 +113,3 @@ class YoloGenerator(tf.keras.utils.Sequence):
         batch_img = np.array(batch_img)
         batch_label = np.array(batch_label)
         return batch_img,batch_label
-
-# with open('../coco/train.txt') as f:
-#     _line = f.readlines()
-# train_set = [i.rstrip('\n') for i in _line]
-# train_generator = YoloGenerator(train_list=train_set,anchors=anchors,shuffle=True,batch_size=1)
-# _b_img,_ = train_generator.__getitem__(0)
-
-# img_1 = _b_img[0]
-# for box in _b_label[0]:
-#     cv2.rectangle(img_1,(int((box[0]-box[2]/2)*416),int((box[1]-box[3]/2)*416)),(int((box[0]+box[2]/2)*416),int((box[1]+box[3]/2)*416)),(255,int(box[4]) * 50,0))
-# cv2.imshow('vis',img_1)
-# cv2.waitKey(0)

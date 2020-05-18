@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fa540a0c-8791-40a3-b86e-a7b76dc4a6e2" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/model/model_full.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_img.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/base_layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/base_layers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/YoloGenerator.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset/YoloGenerator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/h5topb.py" beforeDir="false" afterPath="$PROJECT_DIR$/h5topb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/model_full.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model_full.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
@@ -35,7 +36,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/model/model_full.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/test_img.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -47,15 +48,16 @@
       <recent name="$PROJECT_DIR$/datasets" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.train">
+  <component name="RunManager" selected="Python.test">
     <configuration name="h5topb" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="tf2-yolov3-nano" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
+        <env name="LD_LIBRARY_PATH" value="/usr/local/cuda-10.0/lib64" />
       </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/tf2/bin/python" />
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/tf1/bin/python" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -111,6 +113,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test_img" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="tf2-yolov3-nano" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/tf2/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_img.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="train" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="tf2-yolov3-nano" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -135,6 +158,7 @@
     <list>
       <item itemvalue="Python.train" />
       <item itemvalue="Python.test" />
+      <item itemvalue="Python.test_img" />
       <item itemvalue="Python.h5topb" />
       <item itemvalue="Python.model_full" />
     </list>
@@ -153,50 +177,50 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="0" y="210" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589526770773">
+    <state x="0" y="210" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589787367901">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state x="0" y="210" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1589526770773" />
-    <state x="278" y="279" key="EnvironmentVariablesDialog" timestamp="1589512779697">
+    <state x="0" y="210" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1589787367901" />
+    <state x="278" y="279" key="EnvironmentVariablesDialog" timestamp="1589531333894">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state x="278" y="279" key="EnvironmentVariablesDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1589512779697" />
-    <state x="323" y="310" key="FileChooserDialogImpl" timestamp="1589526769416">
+    <state x="278" y="279" key="EnvironmentVariablesDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1589531333894" />
+    <state x="323" y="310" key="FileChooserDialogImpl" timestamp="1589787366647">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state x="323" y="310" key="FileChooserDialogImpl/0.24.1920.1056@0.24.1920.1056" timestamp="1589526769416" />
-    <state width="1896" height="372" key="GridCell.Tab.0.bottom" timestamp="1589527340678">
+    <state x="323" y="310" key="FileChooserDialogImpl/0.24.1920.1056@0.24.1920.1056" timestamp="1589787366647" />
+    <state width="1896" height="397" key="GridCell.Tab.0.bottom" timestamp="1589797059605">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="372" key="GridCell.Tab.0.bottom/0.24.1920.1056@0.24.1920.1056" timestamp="1589527340678" />
-    <state width="1896" height="372" key="GridCell.Tab.0.center" timestamp="1589527340677">
+    <state width="1896" height="397" key="GridCell.Tab.0.bottom/0.24.1920.1056@0.24.1920.1056" timestamp="1589797059605" />
+    <state width="1896" height="397" key="GridCell.Tab.0.center" timestamp="1589797059604">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="372" key="GridCell.Tab.0.center/0.24.1920.1056@0.24.1920.1056" timestamp="1589527340677" />
-    <state width="1896" height="372" key="GridCell.Tab.0.left" timestamp="1589527340677">
+    <state width="1896" height="397" key="GridCell.Tab.0.center/0.24.1920.1056@0.24.1920.1056" timestamp="1589797059604" />
+    <state width="1896" height="397" key="GridCell.Tab.0.left" timestamp="1589797059603">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="372" key="GridCell.Tab.0.left/0.24.1920.1056@0.24.1920.1056" timestamp="1589527340677" />
-    <state width="1896" height="372" key="GridCell.Tab.0.right" timestamp="1589527340678">
+    <state width="1896" height="397" key="GridCell.Tab.0.left/0.24.1920.1056@0.24.1920.1056" timestamp="1589797059603" />
+    <state width="1896" height="397" key="GridCell.Tab.0.right" timestamp="1589797059605">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="372" key="GridCell.Tab.0.right/0.24.1920.1056@0.24.1920.1056" timestamp="1589527340678" />
-    <state width="1896" height="364" key="GridCell.Tab.1.bottom" timestamp="1589451310108">
+    <state width="1896" height="397" key="GridCell.Tab.0.right/0.24.1920.1056@0.24.1920.1056" timestamp="1589797059605" />
+    <state width="1896" height="364" key="GridCell.Tab.1.bottom" timestamp="1589532687843">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="364" key="GridCell.Tab.1.bottom/0.24.1920.1056@0.24.1920.1056" timestamp="1589451310108" />
-    <state width="1896" height="364" key="GridCell.Tab.1.center" timestamp="1589451310106">
+    <state width="1896" height="364" key="GridCell.Tab.1.bottom/0.24.1920.1056@0.24.1920.1056" timestamp="1589532687843" />
+    <state width="1896" height="364" key="GridCell.Tab.1.center" timestamp="1589532687842">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="364" key="GridCell.Tab.1.center/0.24.1920.1056@0.24.1920.1056" timestamp="1589451310106" />
-    <state width="1896" height="364" key="GridCell.Tab.1.left" timestamp="1589451310104">
+    <state width="1896" height="364" key="GridCell.Tab.1.center/0.24.1920.1056@0.24.1920.1056" timestamp="1589532687842" />
+    <state width="1896" height="364" key="GridCell.Tab.1.left" timestamp="1589532687842">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="364" key="GridCell.Tab.1.left/0.24.1920.1056@0.24.1920.1056" timestamp="1589451310104" />
-    <state width="1896" height="364" key="GridCell.Tab.1.right" timestamp="1589451310106">
+    <state width="1896" height="364" key="GridCell.Tab.1.left/0.24.1920.1056@0.24.1920.1056" timestamp="1589532687842" />
+    <state width="1896" height="364" key="GridCell.Tab.1.right" timestamp="1589532687843">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="364" key="GridCell.Tab.1.right/0.24.1920.1056@0.24.1920.1056" timestamp="1589451310106" />
+    <state width="1896" height="364" key="GridCell.Tab.1.right/0.24.1920.1056@0.24.1920.1056" timestamp="1589532687843" />
     <state x="453" y="174" key="SettingsEditor" timestamp="1589012245552">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
