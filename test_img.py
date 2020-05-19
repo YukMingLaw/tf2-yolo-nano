@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 from dataset.YoloGenerator import YoloGenerator
 
-with open('./coco/train.txt') as f:
+with open('./coco_car/train.txt') as f:
     _line = f.readlines()
 train_set = [i.rstrip('\n') for i in _line]
-train_generator = YoloGenerator(train_list=train_set,anchors=[],shuffle=True,batch_size=1)
+train_generator = YoloGenerator(train_list=train_set,anchors=[],shuffle=True,batch_size=1,debug=True)
 _b_img,box = train_generator.__getitem__(0)
 
 img_1 = _b_img[0]

@@ -15,7 +15,8 @@ class YoloGenerator(tf.keras.utils.Sequence):
             batch_size=1,
             shuffle = True,
             random_transfer = False,
-            input_size = 416
+            input_size = 416,
+            debug=False
     ):
         self.current_index = 0
         self.train_list = train_list
@@ -27,6 +28,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
         self.input_size = input_size
         self.anchors = anchors
         self.num_classes = num_classes
+        self.debug = debug
         if(len(train_list) == 0):
             print('error train set is empty!')
             exit()
@@ -39,9 +41,12 @@ class YoloGenerator(tf.keras.utils.Sequence):
 
     def __getitem__(self, index):
         batch_img,batch_box = self.load_batch()
-        gt = preprocess_true_boxes(batch_box,(self.input_size,self.input_size),self.anchors,self.num_classes)
-        return [batch_img,*gt],np.zeros(self.batch_size)
-        #return batch_img,batch_box
+        if self.debug:
+            return batch_img, batch_box
+        else:
+            gt = preprocess_true_boxes(batch_box,(self.input_size,self.input_size),self.anchors,self.num_classes)
+            return [batch_img,*gt],np.zeros(self.batch_size)
+
 
     def load_batch(self):
         if self.multi_scale:
@@ -70,7 +75,9 @@ class YoloGenerator(tf.keras.utils.Sequence):
             if org_h > org_w :
                 scale = org_w / max_side
                 pts1 = np.array([[0, 0], [org_w, 0], [0, org_h]], dtype=np.float32)
-                pts2 = np.array([[img_size * (1 - scale) / 2, 0], [img_size * (1 + scale) / 2, 0], [img_size * (1 - scale) / 2, img_size]],
+                offset1 = img_size * (1 - scale) / 2
+                offset2 = img_size * (1 + scale) / 2
+                pts2 = np.array([[offset1, 0], [offset2, 0], [offset1, img_size]],
                                 dtype=np.float32)
                 M = cv2.getAffineTransform(pts1, pts2)
                 img = cv2.warpAffine(img, M, (img_size, img_size))
