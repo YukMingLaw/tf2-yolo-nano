@@ -1,11 +1,9 @@
-##Yolo-Nano in Tensorflow 2.1.0
+## Yolo-Nano in Tensorflow 2.1.0
 
-##Statement
+## Statement
 This is a YoloNano implatement in tensorflow 2.1.0.
 
-Origin paper:
-
-##Train
+## Train
 1.Use original yolo train set like,the train images(xxx.jpg) and the label files(xxx.txt) are in the same dir.
 
 The label format is as follow:
