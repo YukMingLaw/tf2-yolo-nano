@@ -5,5 +5,5 @@ pb/
 logs/
 .idea
 model_save/
-test_img.py
+vis_set.py
 pb/h5topb.py

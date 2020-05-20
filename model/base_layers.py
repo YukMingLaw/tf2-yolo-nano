@@ -1,37 +1,38 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNormalization,AvgPool2D,UpSampling2D,Concatenate,LeakyReLU
 from utils.utils import box_iou
+from tensorflow.keras.regularizers import l2
 import numpy as np
 
-def conv1x1(filters,bn=True):
+def conv1x1(filters,bn=True,decay=0.001):
     if bn == True:
         return tf.keras.Sequential(
-            [Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same'),
+            [Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
             BatchNormalization(),
             LeakyReLU()]
         )
     else:
-        return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same')
+        return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay))
 
-def conv3x3(filters,stride,bn=True):
+def conv3x3(filters,stride,bn=True,decay=0.001):
     if bn == True:
         return tf.keras.Sequential(
-            [Conv2D(filters,kernel_size=(3,3),strides=stride,use_bias=False,padding='same'),
+            [Conv2D(filters,kernel_size=(3,3),strides=stride,use_bias=False,padding='same',kernel_regularizer=l2(decay)),
             BatchNormalization(),
             LeakyReLU()]
         )
     else:
-        return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same')
+        return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay))
 
-def sepconv3x3(neck_channels,output_channels,stride=(1,1)):
+def sepconv3x3(neck_channels,output_channels,stride=(1,1),decay=0.001):
     return tf.keras.Sequential([
-        Conv2D(neck_channels,kernel_size=(1,1),use_bias=False,padding='same'),
+        Conv2D(neck_channels,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
         BatchNormalization(),
         LeakyReLU(),
-        DepthwiseConv2D(kernel_size=(3,3),padding='same',strides=stride),
+        DepthwiseConv2D(kernel_size=(3,3),padding='same',strides=stride,kernel_regularizer=l2(decay)),
         BatchNormalization(),
         LeakyReLU(),
-        Conv2D(output_channels,kernel_size=(1,1),use_bias=False,padding='same'),
+        Conv2D(output_channels,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
         BatchNormalization()
     ])
 
@@ -77,17 +78,18 @@ class EP(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 class FCA(tf.keras.layers.Layer):
-    def __init__(self,reduction_ratio,**kwargs):
+    def __init__(self,reduction_ratio,decay=0.001,**kwargs):
         super(FCA, self).__init__(**kwargs)
         self.reduction_ratio = reduction_ratio
+        self.decay = decay
 
     def build(self, input_shape):
         n,h,w,c = input_shape
         self.dense_units = c // self.reduction_ratio
         self.avg_pool = AvgPool2D(pool_size=(h,w))
         self.fc = tf.keras.Sequential([
-            Dense(units=self.dense_units, activation='relu', use_bias=False),
-            Dense(units=c,activation='sigmoid',use_bias=False)
+            Dense(units=self.dense_units, activation='relu', use_bias=False,kernel_regularizer=l2(self.decay)),
+            Dense(units=c,activation='sigmoid',use_bias=False,kernel_regularizer=l2(self.decay))
         ])
 
     def call(self, input):

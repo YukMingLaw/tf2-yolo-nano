@@ -4,8 +4,14 @@ from model.model_full import yoloNano
 from dataset.YoloGenerator import YoloGenerator
 import os
 
-train_path = './coco/train.txt'
-anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14.,22.],[17.,37.],[21.,26.],[29.,38.],[39.,62.],[79.,99.]],dtype='float32')
+train_path = '/home/cvos/Datasets/coco_car/train.txt'
+anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
+
+def m_scheduler(epoch):
+    if epoch < 80:
+        return 0.001
+    else:
+        return 0.0001
 
 def create_callbacks():
     callbacks = []
@@ -19,7 +25,8 @@ def create_callbacks():
         write_images=False,
         embeddings_freq=0,
         embeddings_layer_names=None,
-        embeddings_metadata=None
+        embeddings_metadata=None,
+        update_freq='batch'
     )
     callbacks.append(tensorboard_callback)
     # save the model
@@ -32,6 +39,8 @@ def create_callbacks():
         verbose=1,
     )
     callbacks.append(checkpoint)
+    learnrate = tf.keras.callbacks.LearningRateScheduler(m_scheduler)
+    callbacks.append(learnrate)
     return callbacks
 
 def main():
@@ -41,22 +50,22 @@ def main():
     with open(train_path) as f:
         _line = f.readlines()
     train_set = [i.rstrip('\n') for i in _line]
-    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes=1, batch_size=16, input_size=416)
+    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes=1, batch_size=32, input_size=416)
 
     #creat model
     model,debug_model = yoloNano(anchors, input_size=416, num_classes=1)
 
     #if you want to resume the train,open the code
-    #model.load_weights('./model_save/save_model.h5')
+    model.load_weights('./model_save/save_model.h5')
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-3),loss={'yolo_loss':lambda y_true,y_pred:y_pred})
+    model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-3),loss={'yolo_loss':lambda y_true,y_pred:y_pred},metrics=['accuracy'])
 
     callbacks = create_callbacks()
 
     # start training
     model.fit_generator(
         generator=train_generator,
-        epochs=50,
+        epochs=100,
         callbacks=callbacks
     )
     return 0

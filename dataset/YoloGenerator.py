@@ -65,6 +65,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
         return self.batch_img_label(train_batch,input_size)
 
     def batch_img_label(self,batch_list,img_size,max_num_box = 20):
+        #load images
         batch_img = []
         batch_label = []
         for path in batch_list:
@@ -94,6 +95,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
             img = img / 255.0
             batch_img.append(img)
 
+            #load labels
             _path = path.split('.')
             with open(_path[0] + '.txt') as f:
                 _line = f.readline()

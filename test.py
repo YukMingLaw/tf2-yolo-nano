@@ -5,7 +5,7 @@ from model.base_layers import yolo_eval
 import cv2
 import time
 
-anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14.,22.],[17.,37.],[21.,26.],[29.,38.],[39.,62.],[79.,99.]],dtype='float32')
+anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
 img_size = 416
 
 def main():
@@ -14,7 +14,8 @@ def main():
     train_model, test_model = yoloNano(anchors, input_size=416, num_classes=1)
     test_model.summary()
     test_model.load_weights('./model_save/save_model.h5')
-    img = cv2.imread('./test_img/4.jpg')
+    #img = cv2.imread('/home/cvos/Datasets/coco_car/train/COCO_train2014_000000000540.jpg')
+    img = cv2.imread('./test_img/Untitled Folder/4.jpg')
     org_h = img.shape[0]
     org_w = img.shape[1]
     max_side = max(org_h, org_w)
