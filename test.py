@@ -40,7 +40,7 @@ def main():
     img = img / 255.0
     pred_img = img[np.newaxis,:]
     yolo_output = test_model.predict(pred_img)
-    boxes_, scores_, classes_ = yolo_eval(yolo_output,anchors,1,np.array([416,416]))
+    boxes_, scores_, classes_ = yolo_eval(yolo_output,anchors,1,np.array([416,416]),score_threshold=.4)
     for box in boxes_[0]:
         xmin = int(box[0])
         ymin = int(box[1])

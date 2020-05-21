@@ -3,6 +3,7 @@ from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNorm
 from utils.utils import box_iou
 from tensorflow.keras.regularizers import l2
 import numpy as np
+import math
 
 def conv1x1(filters,bn=True,decay=0.001):
     if bn == True:
@@ -24,16 +25,17 @@ def conv3x3(filters,stride,bn=True,decay=0.001):
     else:
         return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay))
 
-def sepconv3x3(neck_channels,output_channels,stride=(1,1),decay=0.001):
+def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=1,decay=0.001):
     return tf.keras.Sequential([
-        Conv2D(neck_channels,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
+        Conv2D(math.ceil(neck_channels * expantion),kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
         BatchNormalization(),
         LeakyReLU(),
         DepthwiseConv2D(kernel_size=(3,3),padding='same',strides=stride,kernel_regularizer=l2(decay)),
         BatchNormalization(),
         LeakyReLU(),
         Conv2D(output_channels,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
-        BatchNormalization()
+        BatchNormalization(),
+        LeakyReLU()
     ])
 
 class PEP(tf.keras.layers.Layer):
@@ -221,7 +223,7 @@ def yolo_loss(args, anchors, num_classes, ignore_thresh=.5, print_loss=False):
         confidence_loss = tf.keras.backend.sum(confidence_loss) / mf
         class_loss = tf.keras.backend.sum(class_loss) / mf
         loss += xy_loss + wh_loss + confidence_loss + class_loss
-        loss = tf.reshape(loss,[1])
+    loss = tf.reshape(loss,[1])
     return loss
 
 def yolo_eval(yolo_outputs,anchors,num_classes,image_shape,max_boxes=20,score_threshold=.6,iou_threshold=.5):

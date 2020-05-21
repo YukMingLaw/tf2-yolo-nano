@@ -8,10 +8,12 @@ train_path = '/home/cvos/Datasets/coco_car/train.txt'
 anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
 
 def m_scheduler(epoch):
-    if epoch < 80:
+    if epoch < 200:
         return 0.001
-    else:
+    elif epoch < 300:
         return 0.0001
+    else:
+        return 0.00001
 
 def create_callbacks():
     callbacks = []
@@ -50,22 +52,22 @@ def main():
     with open(train_path) as f:
         _line = f.readlines()
     train_set = [i.rstrip('\n') for i in _line]
-    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes=1, batch_size=32, input_size=416)
+    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes=1, batch_size=24, input_size=416)
 
     #creat model
     model,debug_model = yoloNano(anchors, input_size=416, num_classes=1)
 
     #if you want to resume the train,open the code
-    model.load_weights('./model_save/save_model.h5')
+    #model.load_weights('./model_save/save_model.h5')
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-3),loss={'yolo_loss':lambda y_true,y_pred:y_pred},metrics=['accuracy'])
+    model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-3),loss={'yolo_loss':lambda y_true,y_pred:y_pred})
 
     callbacks = create_callbacks()
 
     # start training
     model.fit_generator(
         generator=train_generator,
-        epochs=100,
+        epochs=350,
         callbacks=callbacks
     )
     return 0
