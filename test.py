@@ -7,15 +7,15 @@ import time
 
 anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
 img_size = 416
+num_classes = 1
 
 def main():
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    train_model, test_model = yoloNano(anchors, input_size=416, num_classes=1)
+    train_model, test_model = yoloNano(anchors, input_size=416, num_classes = num_classes)
     test_model.summary()
     test_model.load_weights('./model_save/save_model.h5')
-    #img = cv2.imread('/home/cvos/Datasets/coco_car/train/COCO_train2014_000000000540.jpg')
-    img = cv2.imread('./test_img/Untitled Folder/4.jpg')
+    img = cv2.imread('your test img')
     org_h = img.shape[0]
     org_w = img.shape[1]
     max_side = max(org_h, org_w)
@@ -41,7 +41,7 @@ def main():
     pred_img = img[np.newaxis,:]
     yolo_output = test_model.predict(pred_img)
     boxes_, scores_, classes_ = yolo_eval(yolo_output,anchors,1,np.array([416,416]),score_threshold=.4)
-    for box in boxes_[0]:
+    for box in boxes_:
         xmin = int(box[0])
         ymin = int(box[1])
         xmax = int(box[2])
