@@ -42,12 +42,11 @@ def main():
     yolo_output = test_model.predict(pred_img)
     boxes_, scores_, classes_ = yolo_eval(yolo_output,anchors,1,np.array([416,416]),score_threshold=.4)
     for box in boxes_:
-        xmin = int(box[0])
-        ymin = int(box[1])
-        xmax = int(box[2])
-        ymax = int(box[3])
-        #something worng here...
-        cv2.rectangle(img,(ymin,xmin),(ymax,xmax),(0,255,0))
+        ymin = int(box[0])
+        xmin = int(box[1])
+        ymax = int(box[2])
+        xmax = int(box[3])
+        cv2.rectangle(img,(xmin,ymin),(xmax,ymax),(0,255,0))
     cv2.imshow('pred',img)
     cv2.waitKey(0)
 
