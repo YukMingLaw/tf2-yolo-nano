@@ -8,9 +8,7 @@ train_path = '/home/cvos/Datasets/coco_car/train.txt'
 anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
 
 def m_scheduler(epoch):
-    if epoch < 200:
-        return 0.001
-    elif epoch < 300:
+    if epoch < 100:
         return 0.0001
     else:
         return 0.00001
@@ -58,7 +56,7 @@ def main():
     model,debug_model = yoloNano(anchors, input_size=416, num_classes=1)
 
     #if you want to resume the train,open the code
-    #model.load_weights('./model_save/save_model.h5')
+    model.load_weights('./model_save/save_model.h5')
 
     model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-3),loss={'yolo_loss':lambda y_true,y_pred:y_pred})
 
@@ -67,7 +65,7 @@ def main():
     # start training
     model.fit_generator(
         generator=train_generator,
-        epochs=350,
+        epochs=200,
         callbacks=callbacks
     )
     return 0

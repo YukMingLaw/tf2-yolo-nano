@@ -14,8 +14,8 @@ def main():
     train_model, test_model = yoloNano(anchors, input_size=416, num_classes=1)
     test_model.summary()
     test_model.load_weights('./model_save/save_model.h5')
-    #img = cv2.imread('/home/cvos/Datasets/coco_car/train/COCO_train2014_000000000540.jpg')
-    img = cv2.imread('./test_img/Untitled Folder/4.jpg')
+    img = cv2.imread('/home/cvos/Datasets/coco_car/val/COCO_val2014_000000003849.jpg')
+    #img = cv2.imread('./test_img/Untitled Folder/1.jpg')
     org_h = img.shape[0]
     org_w = img.shape[1]
     max_side = max(org_h, org_w)
