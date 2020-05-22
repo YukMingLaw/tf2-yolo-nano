@@ -4,7 +4,7 @@ from .base_layers import yolo_loss
 from tensorflow.keras.regularizers import l2
 import math
 
-def yoloNano(anchors,input_size=416,num_classes=1,expention=1.6,decay=0.001):
+def yoloNano(anchors,input_size=416,num_classes=1,expention=1.5,decay=0.001):
     #fuck tensorflow 2.x
     #backbone
     input_0 = Input(shape=(input_size,input_size,3))
