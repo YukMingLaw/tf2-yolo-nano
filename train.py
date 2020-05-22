@@ -6,6 +6,9 @@ import os
 
 train_path = 'your train.txt'
 anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
+num_classes = 1
+batch_size = 24
+epochs = 350
 
 def m_scheduler(epoch):
     if epoch < 200:
@@ -50,7 +53,7 @@ def main():
     with open(train_path) as f:
         _line = f.readlines()
     train_set = [i.rstrip('\n') for i in _line]
-    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes=1, batch_size=24, input_size=416)
+    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes = num_classes, batch_size = batch_size, input_size=416)
 
     #creat model
     model,debug_model = yoloNano(anchors, input_size=416, num_classes=1)
@@ -65,7 +68,7 @@ def main():
     # start training
     model.fit_generator(
         generator=train_generator,
-        epochs=350,
+        epochs=epochs,
         callbacks=callbacks
     )
     return 0
