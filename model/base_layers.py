@@ -25,7 +25,7 @@ def conv3x3(filters,stride,bn=True,decay=0.001):
     else:
         return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay))
 
-def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=1,decay=0.001):
+def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=1.5,decay=0.001):
     return tf.keras.Sequential([
         Conv2D(math.ceil(neck_channels * expantion),kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
         BatchNormalization(),
@@ -34,8 +34,7 @@ def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=1,decay=0.00
         BatchNormalization(),
         LeakyReLU(),
         Conv2D(output_channels,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
-        BatchNormalization(),
-        LeakyReLU()
+        BatchNormalization()
     ])
 
 class PEP(tf.keras.layers.Layer):
