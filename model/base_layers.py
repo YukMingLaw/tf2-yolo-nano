@@ -25,9 +25,10 @@ def conv3x3(filters,stride,bn=True,decay=0.001):
     else:
         return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay))
 
-def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=1.5,decay=0.001):
+def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=0.75,decay=0.001):
     return tf.keras.Sequential([
-        Conv2D(math.ceil(neck_channels * expantion),kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
+        #Conv2D(math.ceil(neck_channels * expantion),kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
+        Conv2D(math.ceil(output_channels * expantion),kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay)),
         BatchNormalization(),
         LeakyReLU(),
         DepthwiseConv2D(kernel_size=(3,3),padding='same',strides=stride,kernel_regularizer=l2(decay)),

@@ -4,14 +4,14 @@ from model.model_full import yoloNano
 from dataset.YoloGenerator import YoloGenerator
 import os
 
-train_path = '/home/cvos/Datasets/voc_car_person/train.txt'
-anchors = np.array([[70.,209.],[28.,47.],[40.,118.],[154.,164.],[350.,362.],[308.,209.],[119.,295.],[96.,81.],[201.,332.]],dtype='float32')
-num_classes = 3
-batch_size = 24
-epochs = 100
+train_path = ''
+anchors =
+num_classes =
+batch_size = 16
+epochs = 150
 
 def m_scheduler(epoch):
-    if epoch < 80:
+    if epoch < 100:
         return 0.0001
     else:
         return 0.00001
@@ -53,10 +53,10 @@ def main():
     with open(train_path) as f:
         _line = f.readlines()
     train_set = [i.rstrip('\n') for i in _line]
-    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes = num_classes, batch_size = batch_size, input_size=416)
+    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes = num_classes, batch_size = batch_size,shuffle=False,random_crop=True,input_size=416)
 
     #creat model
-    model,debug_model = yoloNano(anchors, input_size=416, num_classes=1)
+    model,debug_model = yoloNano(anchors, input_size = 416, num_classes = num_classes)
 
     #if you want to resume the train,open the code
     model.load_weights('./model_save/save_model.h5')

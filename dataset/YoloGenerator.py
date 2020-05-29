@@ -15,6 +15,8 @@ class YoloGenerator(tf.keras.utils.Sequence):
             batch_size=1,
             shuffle = True,
             random_transfer = False,
+            random_rotate = False,
+            random_crop = False,
             input_size = 416,
             debug=False
     ):
@@ -25,6 +27,8 @@ class YoloGenerator(tf.keras.utils.Sequence):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.random_trans = random_transfer
+        self.random_crop = random_crop
+        self.random_rotate = random_rotate
         self.input_size = input_size
         self.anchors = anchors
         self.num_classes = num_classes
@@ -40,7 +44,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
         return math.ceil(len(self.train_list) / self.batch_size)
 
     def __getitem__(self, index):
-        batch_img,batch_box = self.load_batch()
+        batch_img,batch_box = self.load_batch(index)
         if self.debug:
             return batch_img, batch_box
         else:
@@ -48,7 +52,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
             return [batch_img,*gt],np.zeros(self.batch_size)
 
 
-    def load_batch(self):
+    def load_batch(self,index):
         if self.multi_scale:
             input_size = np.random.choice(self.multi_image_sizes)
         else:
@@ -59,8 +63,7 @@ class YoloGenerator(tf.keras.utils.Sequence):
                 random_index = np.random.randint(0,len(self.train_list))
                 train_batch.append(self.train_list[random_index])
         else:
-            train_batch = self.train_list[self.current_index : self.current_index+self.batch_size]
-            self.current_index = self.current_index + self.batch_size
+            train_batch = self.train_list[index * self.batch_size : index * self.batch_size + self.batch_size]
 
         return self.batch_img_label(train_batch,input_size)
 
@@ -72,10 +75,25 @@ class YoloGenerator(tf.keras.utils.Sequence):
             img = cv2.imread(path)
             org_h = img.shape[0]
             org_w = img.shape[1]
-            max_side = max(org_h,org_w)
-            if org_h > org_w :
-                scale = org_w / max_side
-                pts1 = np.array([[0, 0], [org_w, 0], [0, org_h]], dtype=np.float32)
+            if self.random_crop:
+                crop_x1 = np.random.randint(0,org_w / 4)
+                crop_x2 = np.random.randint(crop_x1 + org_w / 2,org_w)
+                crop_y1 = np.random.randint(0,org_h / 4)
+                crop_y2 = np.random.randint(crop_y1 + org_h / 2, org_h)
+                img = img[crop_y1:crop_y2,crop_x1:crop_x2,:]
+                crop_h = img.shape[0]
+                crop_w = img.shape[1]
+            else:
+                crop_x1 = 0
+                crop_x2 = org_w
+                crop_y1 = 0
+                crop_y2 = org_h
+                crop_h = org_h
+                crop_w = org_w
+            max_side = max(crop_h,crop_w)
+            if crop_h > crop_w :
+                scale = crop_w / max_side
+                pts1 = np.array([[0, 0], [crop_w, 0], [0, crop_h]], dtype=np.float32)
                 offset1 = img_size * (1 - scale) / 2
                 offset2 = img_size * (1 + scale) / 2
                 pts2 = np.array([[offset1, 0], [offset2, 0], [offset1, img_size]],
@@ -83,8 +101,8 @@ class YoloGenerator(tf.keras.utils.Sequence):
                 M = cv2.getAffineTransform(pts1, pts2)
                 img = cv2.warpAffine(img, M, (img_size, img_size))
             else:
-                scale = org_h / max_side
-                pts1 = np.array([[0, 0], [org_w, 0], [0, org_h]], dtype=np.float32)
+                scale = crop_h / max_side
+                pts1 = np.array([[0, 0], [crop_w, 0], [0, crop_h]], dtype=np.float32)
                 offset1 = img_size * (1 - scale) / 2
                 offset2 = img_size * (1 + scale) / 2
                 pts2 = np.array([[0, offset1], [img_size, offset1], [0, offset2]],
@@ -104,12 +122,53 @@ class YoloGenerator(tf.keras.utils.Sequence):
                     _line_split = _line.split()
                     obj_class = int(_line_split[0])
                     _box = [float(i) for i in _line_split[1:]]
-                    if org_h > org_w:
+                    _box[0] = (_box[0] * org_w - crop_x1) / crop_w
+                    _box[1] = (_box[1] * org_h - crop_y1) / crop_h
+                    _box[2] = _box[2] * org_w / crop_w
+                    _box[3] = _box[3] * org_h / crop_h
+
+                    x1 = (_box[0] - _box[2] / 2) * crop_w
+                    y1 = (_box[1] - _box[3] / 2) * crop_h
+                    x2 = (_box[0] + _box[2] / 2) * crop_w
+                    y2 = (_box[1] + _box[3] / 2) * crop_h
+
+                    if x2 < 0 or x1 > crop_w or y2 < 0 or y1 > crop_h:
+                        _line = f.readline()
+                        continue
+
+                    if x1 < 0:
+                        x1 = 0
+                        if x2 - x1 <= 5:
+                            _line = f.readline()
+                            continue
+                    if x2 > crop_w:
+                        x2 = crop_w
+                        if x2 - x1 <= 5:
+                            _line = f.readline()
+                            continue
+                    if y1 < 0:
+                        y1 = 0
+                        if y2 - y1 <= 5:
+                            _line = f.readline()
+                            continue
+                    if y2 > crop_h:
+                        y2 = crop_h
+                        if y2 - y1 <= 5:
+                            _line = f.readline()
+                            continue
+
+                    _box[0] = (x2 + x1) / 2 / crop_w
+                    _box[1] = (y2 + y1) / 2 / crop_h
+                    _box[2] = (x2 - x1) / crop_w
+                    _box[3] = (y2 - y1) / crop_h
+
+                    if crop_h > crop_w:
                         _box[0] = (_box[0] * img_size * scale + offset1) / img_size
                         _box[2] = _box[2] * scale
                     else:
                         _box[1] = (_box[1] * img_size * scale + offset1) / img_size
                         _box[3] = _box[3] * scale
+
                     _box.append(obj_class)
                     boxes.append(_box)
                     _line = f.readline()

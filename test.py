@@ -5,9 +5,9 @@ from model.base_layers import yolo_eval
 import cv2
 import time
 
-anchors = np.array([[69.,50.],[14.,12.],[149.,158.],[71.,119.],[32.,32.],[203.,278.],[358.,326.],[313.,165.],[178.,71.]],dtype='float32')
+anchors =
 img_size = 416
-num_classes = 1
+num_classes =
 
 def main():
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
@@ -15,8 +15,10 @@ def main():
     train_model, test_model = yoloNano(anchors, input_size=416, num_classes = num_classes)
     test_model.summary()
     test_model.load_weights('./model_save/save_model.h5')
-    #img = cv2.imread('/home/cvos/Datasets/coco_car/val/COCO_val2014_000000003849.jpg')
-    img = cv2.imread('./test_img/Untitled Folder/4.jpeg')
+    img = cv2.imread('')
+    #cap = cv2.VideoCapture('/home/cvos/111.mp4')
+    #while True:
+        #ret,img = cap.read()
     org_h = img.shape[0]
     org_w = img.shape[1]
     max_side = max(org_h, org_w)
@@ -24,7 +26,8 @@ def main():
         scale = org_w / max_side
         pts1 = np.array([[0, 0], [org_w, 0], [0, org_h]], dtype=np.float32)
         pts2 = np.array(
-            [[img_size * (1 - scale) / 2, 0], [img_size * (1 + scale) / 2, 0], [img_size * (1 - scale) / 2, img_size]],
+            [[img_size * (1 - scale) / 2, 0], [img_size * (1 + scale) / 2, 0],
+             [img_size * (1 - scale) / 2, img_size]],
             dtype=np.float32)
         M = cv2.getAffineTransform(pts1, pts2)
         img = cv2.warpAffine(img, M, (img_size, img_size))
@@ -39,17 +42,22 @@ def main():
         img = cv2.warpAffine(img, M, (img_size, img_size))
 
     img = img / 255.0
-    pred_img = img[np.newaxis,:]
+    pred_img = img[np.newaxis, :]
     yolo_output = test_model.predict(pred_img)
-    boxes_, scores_, classes_ = yolo_eval(yolo_output,anchors,1,np.array([416,416]),score_threshold=.2)
-    for box in boxes_[0]:
+
+    boxes_, scores_, classes_ = yolo_eval(yolo_outputs=yolo_output, anchors=anchors, num_classes=num_classes,
+                                          image_shape=np.array([416, 416]), score_threshold=0.4)
+    for box in boxes_:
         ymin = int(box[0])
         xmin = int(box[1])
         ymax = int(box[2])
         xmax = int(box[3])
-        cv2.rectangle(img,(xmin,ymin),(xmax,ymax),(0,255,0))
-    cv2.imshow('pred',img)
+        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0))
+    cv2.imshow('pred', img)
     cv2.waitKey(0)
+
+
+
 
 if __name__ == '__main__':
     main()
