@@ -5,7 +5,6 @@ from model.base_layers import yolo_eval
 import cv2
 import time
 
-#anchors = np.array([[70.,209.],[28.,47.],[40.,118.],[154.,164.],[350.,362.],[308.,209.],[119.,295.],[96.,81.],[201.,332.]],dtype='float32')
 anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14,22],[17,37],[21,26],[29,38],[39,62],[79,99]],dtype='float32')
 img_size = 416
 num_classes = 1
