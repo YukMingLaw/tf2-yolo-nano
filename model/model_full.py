@@ -4,11 +4,16 @@ from .base_layers import yolo_loss
 from tensorflow.keras.regularizers import l2
 import math
 
-def yoloNano(anchors,input_size=416,num_classes = 1,expension = .75,decay=0.0005):
+def yoloNano(anchors,input_size=416,include_attention = False,num_classes = 1,expension = .75,decay=0.0005):
     #fuck tensorflow 2.x
     #backbone
-    input_0 = Input(shape=(input_size,input_size,3))
-    input_gt = [Input(shape=(input_size//{0:32, 1:16, 2:8}[l], input_size//{0:32, 1:16, 2:8}[l],len(anchors)//3, num_classes+5)) for l in range(3)]
+    if include_attention:
+        input_0 = Input(shape=(input_size,input_size,3))
+        input_gt = [Input(shape=(input_size//{0:32, 1:16, 2:8}[l], input_size//{0:32, 1:16, 2:8}[l],len(anchors)//3, num_classes+5)) for l in range(3)]
+    else:
+        input_0 = Input(shape=(None, None, 3))
+        input_gt = [Input(shape=(None , None , len(anchors) // 3, num_classes + 5)) for l in range(3)]
+
     x = Conv2D(filters=12,strides=(1,1),kernel_size=(3,3),use_bias=False,padding='same',kernel_regularizer=l2(l=decay))(input_0)
     x = BatchNormalization()(x)
     x = LeakyReLU(alpha = 0.1)(x)
@@ -90,10 +95,13 @@ def yoloNano(anchors,input_size=416,num_classes = 1,expension = .75,decay=0.0005
     x = BatchNormalization()(x)
     x_4 = LeakyReLU(alpha = 0.1)(x)
     #FCA(8)
-    x = AvgPool2D(pool_size=(52,52))(x_4)
-    x = Dense(units=150 // 8,activation='relu',use_bias=False,kernel_regularizer=l2(l=decay))(x)
-    x = Dense(units=150, activation='sigmoid', use_bias=False,kernel_regularizer=l2(l=decay))(x)
-    x_5 = Multiply()([x_4,x])
+    if include_attention:
+        x = AvgPool2D(pool_size=(52,52))(x_4)
+        x = Dense(units=150 // 8,activation='relu',use_bias=False,kernel_regularizer=l2(l=decay))(x)
+        x = Dense(units=150, activation='sigmoid', use_bias=False,kernel_regularizer=l2(l=decay))(x)
+        x_5 = Multiply()([x_4,x])
+    else:
+        x_5 = x_4
     #PEP(73)(52x52x150)
     x = Conv2D(filters=73, strides=(1, 1), kernel_size=(1, 1), use_bias=False, padding='same',kernel_regularizer=l2(l=decay))(x_5)
     x = BatchNormalization()(x)

@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+import cv2
+import math
 
 def preprocess_true_boxes(true_boxes, input_shape, anchors, num_classes):
     '''Preprocess true boxes to training input format
@@ -106,3 +108,56 @@ def box_iou(b1, b2):
     iou = intersect_area / (b1_area + b2_area - intersect_area)
 
     return iou
+
+def rotate_img(img,angle):
+    h = img.shape[0]
+    w = img.shape[1]
+    if w > h:
+        x = (h / 2) / (h / w + math.fabs(math.tan(math.radians(angle))))
+        scale = w / 2 / x
+    else:
+        x = (w / 2) / (w / h + math.fabs(math.tan(math.radians(angle))))
+        scale = h / 2 / x
+
+    M = cv2.getRotationMatrix2D((w/2,h/2),angle,scale)
+    img = cv2.warpAffine(img, M, (w, h))
+    return img,M,scale
+
+def get_rottate_label(box,img_w,img_h,M):
+    x = box[0] * img_w
+    y = box[1] * img_h
+    w = box[2] * img_w
+    h = box[3] * img_h
+
+    pts = np.zeros((4,2),dtype=np.float)
+
+    pts[0][0] = x - w / 2
+    pts[0][1] = y - h / 2
+    pts[1][0] = x + w / 2
+    pts[1][1] = y - h / 2
+    pts[2][0] = x + w / 2
+    pts[2][1] = y + h / 2
+    pts[3][0] = x - w / 2
+    pts[3][1] = y + h / 2
+
+    pts = np.dot(M[:,:2], pts.transpose()) + M[:,2:]
+    pts = pts.transpose()
+
+    if M[0][1] > 0:
+        pt_l_t_x = pts[0][0]
+        pt_l_t_y = pts[1][1]
+        pt_r_b_x = pts[2][0]
+        pt_r_b_y = pts[3][1]
+    else:
+        pt_l_t_x = pts[3][0]
+        pt_l_t_y = pts[0][1]
+        pt_r_b_x = pts[1][0]
+        pt_r_b_y = pts[2][1]
+    x = (pt_r_b_x + pt_l_t_x) / 2 / img_w
+    y = (pt_r_b_y + pt_l_t_y) / 2 / img_h
+    w = (pt_r_b_x - pt_l_t_x) / img_w
+    h = (pt_r_b_y - pt_l_t_y) / img_h
+
+    return [x,y,w,h]
+
+

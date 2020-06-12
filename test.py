@@ -5,20 +5,23 @@ from model.base_layers import yolo_eval
 import cv2
 import time
 
-anchors =
+#anchors = np.array([[70.,209.],[28.,47.],[40.,118.],[154.,164.],[350.,362.],[308.,209.],[119.,295.],[96.,81.],[201.,332.]],dtype='float32')
+anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14,22],[17,37],[21,26],[29,38],[39,62],[79,99]],dtype='float32')
 img_size = 416
-num_classes =
+num_classes = 1
 
 def main():
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
     train_model, test_model = yoloNano(anchors, input_size=416, num_classes = num_classes)
     test_model.summary()
-    test_model.load_weights('./model_save/save_model.h5')
-    img = cv2.imread('')
-    #cap = cv2.VideoCapture('/home/cvos/111.mp4')
-    #while True:
-        #ret,img = cap.read()
+    test_model.load_weights('./model_save/multi_coco_car(no crop no rotate).h5')
+    test_model.save('./pb/coco_car_deploy.h5')
+    #img = cv2.imread('/home/cvos/Datasets/VOCdevkit/VOC2007Test/JPEGImages/006169.jpg')
+    img = cv2.imread('./test_img/Untitled Folder/2.jpg')
+    # cap = cv2.VideoCapture('/home/cvos/Video/gate/1.mp4')
+    # while True:
+    #     ret,img = cap.read()
     org_h = img.shape[0]
     org_w = img.shape[1]
     max_side = max(org_h, org_w)
@@ -46,8 +49,8 @@ def main():
     yolo_output = test_model.predict(pred_img)
 
     boxes_, scores_, classes_ = yolo_eval(yolo_outputs=yolo_output, anchors=anchors, num_classes=num_classes,
-                                          image_shape=np.array([416, 416]), score_threshold=0.4)
-    for box in boxes_:
+                                          image_shape=np.array([img_size, img_size]), score_threshold=0.7)
+    for box in boxes_[0]:
         ymin = int(box[0])
         xmin = int(box[1])
         ymax = int(box[2])
@@ -55,9 +58,6 @@ def main():
         cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0))
     cv2.imshow('pred', img)
     cv2.waitKey(0)
-
-
-
 
 if __name__ == '__main__':
     main()

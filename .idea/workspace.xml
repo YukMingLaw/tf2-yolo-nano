@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fa540a0c-8791-40a3-b86e-a7b76dc4a6e2" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/utils/misc_effect_preprocess.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/visual_effect_preprocess.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dataset/YoloGenerator.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset/YoloGenerator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/YoloGenerator.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/model/base_layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/base_layers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/model_full.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model_full.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
@@ -36,20 +38,21 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/test_img.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/pb/test_yolov3.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/utils" />
+      <recent name="$PROJECT_DIR$/pb" />
+      <recent name="$PROJECT_DIR$/model" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/utils" />
       <recent name="$PROJECT_DIR$/datasets" />
     </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/pb" />
-      <recent name="$PROJECT_DIR$/model" />
-    </key>
   </component>
-  <component name="RunManager" selected="Python.test">
+  <component name="RunManager" selected="Python.vis_set">
     <configuration name="h5topb" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="tf2-yolov3-nano" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -72,27 +75,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="model_full" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="tf2-yolov3-nano" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/tf2/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/model_full.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="tf2-yolov3-nano" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -106,6 +88,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_yolov3" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="tf2-yolov3-nano" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/miniconda3/envs/tf2/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/pb" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pb/test_yolov3.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -159,8 +162,8 @@
     <list>
       <item itemvalue="Python.train" />
       <item itemvalue="Python.test" />
+      <item itemvalue="Python.test_yolov3" />
       <item itemvalue="Python.h5topb" />
-      <item itemvalue="Python.model_full" />
       <item itemvalue="Python.vis_set" />
     </list>
   </component>
@@ -178,34 +181,34 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="0" y="210" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1589787367901">
+    <state x="529" y="156" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1591761747333">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state x="0" y="210" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1589787367901" />
+    <state x="529" y="156" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1591761747333" />
     <state x="278" y="279" key="EnvironmentVariablesDialog" timestamp="1589531333894">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
     <state x="278" y="279" key="EnvironmentVariablesDialog/0.24.1920.1056@0.24.1920.1056" timestamp="1589531333894" />
-    <state x="323" y="310" key="FileChooserDialogImpl" timestamp="1589787366647">
+    <state x="323" y="310" key="FileChooserDialogImpl" timestamp="1591760835461">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state x="323" y="310" key="FileChooserDialogImpl/0.24.1920.1056@0.24.1920.1056" timestamp="1589787366647" />
-    <state width="1896" height="345" key="GridCell.Tab.0.bottom" timestamp="1590745651331">
+    <state x="323" y="310" key="FileChooserDialogImpl/0.24.1920.1056@0.24.1920.1056" timestamp="1591760835461" />
+    <state width="1896" height="280" key="GridCell.Tab.0.bottom" timestamp="1591945831706">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="345" key="GridCell.Tab.0.bottom/0.24.1920.1056@0.24.1920.1056" timestamp="1590745651331" />
-    <state width="1896" height="345" key="GridCell.Tab.0.center" timestamp="1590745651330">
+    <state width="1896" height="280" key="GridCell.Tab.0.bottom/0.24.1920.1056@0.24.1920.1056" timestamp="1591945831706" />
+    <state width="1896" height="280" key="GridCell.Tab.0.center" timestamp="1591945831705">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="345" key="GridCell.Tab.0.center/0.24.1920.1056@0.24.1920.1056" timestamp="1590745651330" />
-    <state width="1896" height="345" key="GridCell.Tab.0.left" timestamp="1590745651329">
+    <state width="1896" height="280" key="GridCell.Tab.0.center/0.24.1920.1056@0.24.1920.1056" timestamp="1591945831705" />
+    <state width="1896" height="280" key="GridCell.Tab.0.left" timestamp="1591945831705">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="345" key="GridCell.Tab.0.left/0.24.1920.1056@0.24.1920.1056" timestamp="1590745651329" />
-    <state width="1896" height="345" key="GridCell.Tab.0.right" timestamp="1590745651330">
+    <state width="1896" height="280" key="GridCell.Tab.0.left/0.24.1920.1056@0.24.1920.1056" timestamp="1591945831705" />
+    <state width="1896" height="280" key="GridCell.Tab.0.right" timestamp="1591945831706">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>
-    <state width="1896" height="345" key="GridCell.Tab.0.right/0.24.1920.1056@0.24.1920.1056" timestamp="1590745651330" />
+    <state width="1896" height="280" key="GridCell.Tab.0.right/0.24.1920.1056@0.24.1920.1056" timestamp="1591945831706" />
     <state width="1896" height="364" key="GridCell.Tab.1.bottom" timestamp="1589532687843">
       <screen x="0" y="24" width="1920" height="1056" />
     </state>

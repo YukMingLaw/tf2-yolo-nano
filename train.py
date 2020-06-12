@@ -1,17 +1,19 @@
 import tensorflow as tf
 import numpy as np
 from model.model_full import yoloNano
-from dataset.YoloGenerator import YoloGenerator
+from generator.YoloGenerator import YoloGenerator
+from utils.visual_effect_preprocess import VisualEffect
+from utils.misc_effect_preprocess import MiscEffect
 import os
 
-train_path = ''
-anchors =
-num_classes =
-batch_size = 16
-epochs = 150
+train_path = '/home/cvos/Datasets/coco_car/train.txt'
+anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14,22],[17,37],[21,26],[29,38],[39,62],[79,99]],dtype='float32')
+num_classes = 1
+batch_size = 10
+epochs = 100
 
 def m_scheduler(epoch):
-    if epoch < 100:
+    if epoch < 70:
         return 0.0001
     else:
         return 0.00001
@@ -37,7 +39,7 @@ def create_callbacks():
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
         os.path.join(
             './model_save',
-            'save_model.h5'
+            'multi_coco_car.h5'
         ),
         verbose=1,
     )
@@ -53,13 +55,21 @@ def main():
     with open(train_path) as f:
         _line = f.readlines()
     train_set = [i.rstrip('\n') for i in _line]
-    train_generator = YoloGenerator(train_list=train_set, anchors=anchors, num_classes = num_classes, batch_size = batch_size,shuffle=False,random_crop=True,input_size=416)
+    train_generator = YoloGenerator(train_list=train_set,
+                                    anchors=anchors,
+                                    num_classes=num_classes,
+                                    batch_size=batch_size,
+                                    shuffle=False,
+                                    multi_scale=True,
+                                    visual_effect=VisualEffect(),
+                                    misc_effect=MiscEffect(border_value=0),
+                                    input_size=416)
 
     #creat model
-    model,debug_model = yoloNano(anchors, input_size = 416, num_classes = num_classes)
+    model,debug_model = yoloNano(anchors, num_classes = num_classes)
 
     #if you want to resume the train,open the code
-    model.load_weights('./model_save/save_model.h5')
+    model.load_weights('./model_save/multi_coco_car(no crop no rotate).h5')
 
     model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-4),loss={'yolo_loss':lambda y_true,y_pred:y_pred})
 
