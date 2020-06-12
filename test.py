@@ -16,12 +16,7 @@ def main():
     train_model, test_model = yoloNano(anchors, input_size=416, num_classes = num_classes)
     test_model.summary()
     test_model.load_weights('./model_save/multi_coco_car(no crop no rotate).h5')
-    test_model.save('./pb/coco_car_deploy.h5')
-    #img = cv2.imread('/home/cvos/Datasets/VOCdevkit/VOC2007Test/JPEGImages/006169.jpg')
     img = cv2.imread('./test_img/Untitled Folder/2.jpg')
-    # cap = cv2.VideoCapture('/home/cvos/Video/gate/1.mp4')
-    # while True:
-    #     ret,img = cap.read()
     org_h = img.shape[0]
     org_w = img.shape[1]
     max_side = max(org_h, org_w)

@@ -4,7 +4,7 @@ from generator.YoloGenerator import YoloGenerator
 from utils.visual_effect_preprocess import VisualEffect
 from utils.misc_effect_preprocess import MiscEffect
 
-with open('/home/cvos/Datasets/coco_car/train.txt') as f:
+with open('') as f:
     _line = f.readlines()
 train_set = [i.rstrip('\n') for i in _line]
 train_generator = YoloGenerator(train_list = train_set,

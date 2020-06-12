@@ -6,7 +6,7 @@ from utils.visual_effect_preprocess import VisualEffect
 from utils.misc_effect_preprocess import MiscEffect
 import os
 
-train_path = '/home/cvos/Datasets/coco_car/train.txt'
+train_path = ''
 anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14,22],[17,37],[21,26],[29,38],[39,62],[79,99]],dtype='float32')
 num_classes = 1
 batch_size = 10
