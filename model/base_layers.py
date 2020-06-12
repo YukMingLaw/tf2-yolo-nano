@@ -23,7 +23,7 @@ def conv3x3(filters,stride,bn=True,decay=0.001):
             LeakyReLU()]
         )
     else:
-        return Conv2D(filters,kernel_size=(1,1),use_bias=False,padding='same',kernel_regularizer=l2(decay))
+        return Conv2D(filters,kernel_size=(3,3),use_bias=False,padding='same',kernel_regularizer=l2(decay))
 
 def sepconv3x3(neck_channels,output_channels,stride=(1,1),expantion=0.75,decay=0.001):
     return tf.keras.Sequential([
