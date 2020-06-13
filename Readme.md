@@ -3,6 +3,16 @@
 ## Statement
 This is a YoloNano implatement in tensorflow 2.1.0.
 
+## Demonstration
+
+Trained on COCO dataset(only car class)
+
+![avatar](./data/1.png)
+
+![avatar](./data/3.png)
+
+![avatar](./data/4.png)
+
 ## Train
 1.Use original yolo train set like,the train images(xxx.jpg) and the label files(xxx.txt) are in the same dir.
 
