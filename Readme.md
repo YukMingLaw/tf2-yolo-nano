@@ -3,6 +3,14 @@
 ## Statement
 This is a YoloNano implatement in tensorflow 2.1.0.
 
+updated 2020-6-12:
+
+1.YoloGenerator.py -> add visual effect
+
+2.YoloGenerator.py -> add rotate and filp effect
+
+**3.model.py&model_full.py -> disable FCA modular in order to adapt to multi-scale training**
+
 ## Demonstration
 
 Trained on COCO dataset(only car class)
