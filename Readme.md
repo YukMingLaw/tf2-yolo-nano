@@ -9,7 +9,7 @@ updated 2020-6-12:
 
 2.YoloGenerator.py -> add rotate and filp effect
 
-**3.model.py&model_full.py -> disable FCA modular in order to adapt to multi-scale training**
+3.model.py&model_full.py -> use GlobalAvgPooling in order to adapt to multi-scale training
 
 ## Demonstration
 
