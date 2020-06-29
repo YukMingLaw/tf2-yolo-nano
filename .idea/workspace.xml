@@ -3,12 +3,17 @@
   <component name="ChangeListManager">
     <list default="true" id="fa540a0c-8791-40a3-b86e-a7b76dc4a6e2" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/model/base_layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/base_layers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/model_full.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model_full.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/Readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/Readme.md" afterDir="false" />
+>>>>>>> aadede698aa683efc7ac3410cad632e3170f8ec8
     </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -48,7 +53,23 @@
       <recent name="$PROJECT_DIR$/datasets" />
     </key>
   </component>
+<<<<<<< HEAD
   <component name="RunManager" selected="Python.test">
+=======
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.train">
+>>>>>>> aadede698aa683efc7ac3410cad632e3170f8ec8
     <configuration name="h5topb" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="tf2-yolov3-nano" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -175,6 +196,19 @@
       <updated>1589012226028</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="WindowStateProjectService">
     <state x="529" y="156" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1593312020494">

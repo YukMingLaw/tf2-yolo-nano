@@ -3,6 +3,24 @@
 ## Statement
 This is a YoloNano implatement in tensorflow 2.1.0.
 
+updated 2020-6-12:
+
+1.YoloGenerator.py -> add visual effect
+
+2.YoloGenerator.py -> add rotate and filp effect
+
+**3.model.py&model_full.py -> disable FCA modular in order to adapt to multi-scale training**
+
+## Demonstration
+
+Trained on COCO dataset(only car class)
+
+![avatar](./data/1.png)
+
+![avatar](./data/3.png)
+
+![avatar](./data/4.png)
+
 ## Train
 1.Use original yolo train set like,the train images(xxx.jpg) and the label files(xxx.txt) are in the same dir.
 
