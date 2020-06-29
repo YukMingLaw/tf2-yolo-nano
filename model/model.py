@@ -2,13 +2,10 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input,UpSampling2D,Concatenate,Lambda
 from .base_layers import conv1x1,conv3x3,PEP,EP,FCA,yolo_loss
 
-def yoloNano(anchors,input_size=416,num_classes=1,include_attention=False):
-    if include_attention:
-        input_0 = Input(shape=(input_size,input_size,3))
-        input_gt = [Input(shape=(input_size//{0:32, 1:16, 2:8}[l], input_size//{0:32, 1:16, 2:8}[l],len(anchors)//3, num_classes+5)) for l in range(3)]
-    else:
-        input_0 = Input(shape=(None, None, 3))
-        input_gt = [Input(shape=(None, None, len(anchors) // 3, num_classes + 5)) for l in range(3)]
+def yoloNano(anchors,input_size=416,num_classes=1,include_attention=True):
+
+    input_0 = Input(shape=(None, None, 3))
+    input_gt = [Input(shape=(None, None, len(anchors) // 3, num_classes + 5)) for l in range(3)]
 
     x = conv3x3(filters=12,stride=(1,1))(input_0)
     x = conv3x3(filters=24,stride=(2,2))(x)

@@ -6,14 +6,14 @@ from utils.visual_effect_preprocess import VisualEffect
 from utils.misc_effect_preprocess import MiscEffect
 import os
 
-train_path = ''
-anchors = np.array([[6.,9.],[8.,13.],[11.,16.],[14,22],[17,37],[21,26],[29,38],[39,62],[79,99]],dtype='float32')
+train_path = 'your train.txt'
+anchors = np.array([[361.89,305.58],[41.71,77.01],[69.76,39.62],[232.19,251.31],[237.52,111.08],[29.62,26.81],[13.05,11.75],[113.23,185.59],[102.45,85.29]],dtype='float32')
 num_classes = 1
 batch_size = 10
-epochs = 100
+epochs = 150
 
 def m_scheduler(epoch):
-    if epoch < 70:
+    if epoch < 100:
         return 0.0001
     else:
         return 0.00001
@@ -69,7 +69,7 @@ def main():
     model,debug_model = yoloNano(anchors, num_classes = num_classes)
 
     #if you want to resume the train,open the code
-    model.load_weights('./model_save/multi_coco_car(no crop no rotate).h5')
+    #model.load_weights('./model_save/multi_coco_car.h5')
 
     model.compile(optimizer=tf.keras.optimizers.Adam(lr=1e-4),loss={'yolo_loss':lambda y_true,y_pred:y_pred})
 

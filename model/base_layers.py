@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNormalization,AvgPool2D,UpSampling2D,Concatenate,LeakyReLU
+from tensorflow.keras.layers import Conv2D,DepthwiseConv2D,Dense,Input,BatchNormalization,GlobalAveragePooling2D,UpSampling2D,Concatenate,LeakyReLU
 from utils.utils import box_iou
 from tensorflow.keras.regularizers import l2
 import numpy as np
@@ -88,7 +88,7 @@ class FCA(tf.keras.layers.Layer):
     def build(self, input_shape):
         n,h,w,c = input_shape
         self.dense_units = c // self.reduction_ratio
-        self.avg_pool = AvgPool2D(pool_size=(h,w))
+        self.avg_pool = GlobalAveragePooling2D()
         self.fc = tf.keras.Sequential([
             Dense(units=self.dense_units, activation='relu', use_bias=False,kernel_regularizer=l2(self.decay)),
             Dense(units=c,activation='sigmoid',use_bias=False,kernel_regularizer=l2(self.decay))
